@@ -5,64 +5,88 @@ from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
 def mostrar_formulario_empleado(empleado=None):
-    """Muestra el formulario para crear/editar empleado"""
+    """Muestra el formulario para crear/editar empleado con validación avanzada y mejor UX/UI"""
+    st.markdown("### {} Empleado {}".format(
+        "Editar" if empleado else "Nuevo",
+        f"<span style='color:#888'>({empleado.dni})</span>" if empleado else ""
+    ), unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    errores = {}
     with st.form("form_empleado"):
-        dni = st.text_input("DNI", value=empleado.dni if empleado else "")
-        nombre = st.text_input("Nombre", value=empleado.nombre if empleado else "")
-        apellido = st.text_input("Apellido", value=empleado.apellido if empleado else "")
-        fecha_ingreso = st.date_input(
-            "Fecha de Ingreso",
-            value=empleado.fecha_ingreso if empleado else datetime.now()
-        )
-        estado = st.selectbox(
-            "Estado",
-            options=['activo', 'inactivo'],
-            index=0 if not empleado or empleado.estado == 'activo' else 1
-        )
-        skill = st.text_input("Skill", value=empleado.skill if empleado else "")
-        es_lider = st.checkbox("Es Líder", value=empleado.es_lider if empleado else False)
+        with col1:
+            dni = st.text_input("🆔 DNI", value=empleado.dni if empleado else "", disabled=bool(empleado))
+            nombre = st.text_input("👤 Nombre", value=empleado.nombre if empleado else "")
+            apellido = st.text_input("👥 Apellido", value=empleado.apellido if empleado else "")
+            skill = st.text_input("💡 Skill", value=empleado.skill if empleado else "")
+        with col2:
+            fecha_ingreso = st.date_input(
+                "📅 Fecha de Ingreso",
+                value=empleado.fecha_ingreso if empleado else datetime.now()
+            )
+            estado = st.selectbox(
+                "🔄 Estado",
+                options=['activo', 'inactivo'],
+                index=0 if not empleado or empleado.estado == 'activo' else 1
+            )
+            es_lider = st.checkbox("⭐ Es Líder", value=empleado.es_lider if empleado else False)
         
-        submit = st.form_submit_button("Guardar")
+        # Validaciones
+        if not dni or not validar_dni(dni):
+            errores['dni'] = "DNI inválido. Debe tener 7 u 8 dígitos numéricos."
+        if not nombre.strip():
+            errores['nombre'] = "El nombre es obligatorio."
+        if not apellido.strip():
+            errores['apellido'] = "El apellido es obligatorio."
+        if not skill.strip():
+            errores['skill'] = "El skill es obligatorio."
+        if not isinstance(fecha_ingreso, datetime):
+            errores['fecha_ingreso'] = "Fecha inválida."
         
-        if submit:
-            if not validar_dni(dni):
-                st.error("DNI inválido")
-                return False
-                
+        # Mostrar errores debajo de cada campo
+        for campo, mensaje in errores.items():
+            st.markdown(f"<span style='color:red;font-size:12px;'>{mensaje}</span>", unsafe_allow_html=True)
+        
+        submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
+        
+        if submit and not errores:
             datos = {
-                'nombre': nombre,
-                'apellido': apellido,
+                'nombre': nombre.strip(),
+                'apellido': apellido.strip(),
                 'fecha_ingreso': normalizar_fecha(fecha_ingreso),
                 'estado': normalizar_estado(estado),
-                'skill': skill,
+                'skill': skill.strip(),
                 'es_lider': normalizar_boolean(es_lider)
             }
-            
             try:
                 if empleado:
-                    actualizar_empleado(dni, datos, st.session_state.user.id)
-                    st.success("Empleado actualizado correctamente")
+                    actualizado = actualizar_empleado(dni, datos, st.session_state.user.id)
+                    if actualizado:
+                        st.success("✅ Empleado actualizado correctamente")
+                        return True
+                    else:
+                        st.error("No se pudo actualizar el empleado.")
                 else:
-                    crear_empleado(dni, **datos, usuario_id=st.session_state.user.id)
-                    st.success("Empleado creado correctamente")
-                return True
+                    creado = crear_empleado(dni, **datos, usuario_id=st.session_state.user.id)
+                    if creado:
+                        st.success("✅ Empleado creado correctamente")
+                        return True
+                    else:
+                        st.error("No se pudo crear el empleado.")
             except Exception as e:
                 st.error(f"Error al guardar: {str(e)}")
-                return False
+        return False
 
 def mostrar_lista_empleados():
-    """Muestra la lista de empleados con filtros"""
+    """Muestra la lista de empleados con filtros y acciones mejoradas"""
     st.subheader("Filtros")
     col1, col2 = st.columns(2)
-    
     with col1:
         filtro_dni = st.text_input("Filtrar por DNI")
         filtro_nombre = st.text_input("Filtrar por Nombre")
-    
     with col2:
         filtro_estado = st.selectbox("Filtrar por Estado", ['', 'activo', 'inactivo'])
         filtro_lider = st.selectbox("Filtrar por Líder", ['', 'Sí', 'No'])
-    
     filtros = {}
     if filtro_dni:
         filtros['dni'] = filtro_dni
@@ -72,13 +96,10 @@ def mostrar_lista_empleados():
         filtros['estado'] = filtro_estado
     if filtro_lider:
         filtros['es_lider'] = filtro_lider == 'Sí'
-    
     empleados = listar_empleados(filtros)
-    
     if not empleados:
         st.info("No se encontraron empleados")
         return
-    
     # Convertir a DataFrame para mostrar
     df = pd.DataFrame([{
         'DNI': e.dni,
@@ -89,44 +110,42 @@ def mostrar_lista_empleados():
         'Skill': e.skill,
         'Es Líder': 'Sí' if e.es_lider else 'No'
     } for e in empleados])
-    
     st.dataframe(df, use_container_width=True)
-    
-    # Botones de acción
+    # Botones de acción mejorados
     st.subheader("Acciones")
     col1, col2 = st.columns(2)
-    
     with col1:
         dni_editar = st.text_input("DNI a editar")
-        if dni_editar and st.button("Editar"):
+        if dni_editar and st.button("✏️ Editar"):
             empleado = obtener_empleado(dni_editar)
             if empleado:
                 if mostrar_formulario_empleado(empleado):
                     st.rerun()
             else:
                 st.error("Empleado no encontrado")
-    
     with col2:
         dni_eliminar = st.text_input("DNI a eliminar")
-        if dni_eliminar and st.button("Eliminar"):
+        if dni_eliminar and st.button("🗑️ Eliminar"):
             if st.session_state.rol != 'admin':
                 st.error("Solo los administradores pueden eliminar empleados")
             else:
-                if eliminar_empleado(dni_eliminar, st.session_state.user.id):
-                    st.success("Empleado eliminado correctamente")
-                    st.rerun()
-                else:
+                empleado = obtener_empleado(dni_eliminar)
+                if not empleado:
                     st.error("Empleado no encontrado")
+                else:
+                    if st.confirm(f"¿Estás seguro de que deseas eliminar al empleado {empleado.nombre} {empleado.apellido} (DNI: {empleado.dni})? Esta acción no se puede deshacer."):
+                        if eliminar_empleado(dni_eliminar, st.session_state.user.id):
+                            st.success("Empleado eliminado correctamente")
+                            st.rerun()
+                        else:
+                            st.error("No se pudo eliminar el empleado.")
 
 def mostrar_pagina_abm():
     """Muestra la página principal de ABM"""
     st.title("Gestión de Empleados")
-    
     tab1, tab2 = st.tabs(["Lista de Empleados", "Nuevo Empleado"])
-    
     with tab1:
         mostrar_lista_empleados()
-    
     with tab2:
         if mostrar_formulario_empleado():
             st.rerun() 
