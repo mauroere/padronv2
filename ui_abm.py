@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import psycopg2
+import time
 from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener_empleado, listar_empleados
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
@@ -77,6 +78,8 @@ def mostrar_formulario_empleado(empleado=None):
                     creado = crear_empleado(dni, **datos, usuario_id=st.session_state.user.id)
                     if creado:
                         st.success("✅ Empleado creado correctamente")
+                        time.sleep(2)
+                        st.experimental_rerun()
                         return True
                     else:
                         st.error("No se pudo crear el empleado.")
