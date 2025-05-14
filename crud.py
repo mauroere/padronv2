@@ -2,6 +2,7 @@ from db import get_session, Empleado, LogCambio
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import String, Boolean, Integer
+from sqlalchemy.orm import joinedload
 
 def crear_empleado(dni, nombre, apellido, fecha_ingreso, estado, skill, es_lider, usuario_id):
     """Crea un nuevo empleado y registra el cambio en el log"""
