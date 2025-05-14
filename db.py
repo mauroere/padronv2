@@ -68,8 +68,8 @@ def get_database_url():
                     encoded_password = password.replace('(', '%28').replace(')', '%29')
                     # Forzar el uso del project ref correcto
                     project_ref = "rujoykekjejmanavdfvl"  # Tu project ref específico
-                    # Reconstruir la URL con el formato correcto
-                    return f"{protocol}://postgres:{encoded_password}@db.{project_ref}.supabase.co:5432/postgres"
+                    # Reconstruir la URL con el formato correcto y parámetros adicionales
+                    return f"{protocol}://postgres:{encoded_password}@db.{project_ref}.supabase.co:5432/postgres?hostaddr=db.{project_ref}.supabase.co"
         return db_url
     else:
         st.error("""
@@ -103,13 +103,15 @@ def init_db():
             pool_size=5,         # Número máximo de conexiones en el pool
             max_overflow=10,     # Número máximo de conexiones adicionales
             connect_args={
-                "connect_timeout": 10,  # Timeout de conexión de 10 segundos
-                "application_name": "padron_app",  # Nombre de la aplicación
-                "options": "-c timezone=UTC",  # Forzar zona horaria UTC
-                "keepalives": 1,  # Mantener conexión viva
-                "keepalives_idle": 30,  # Tiempo de inactividad antes de enviar keepalive
-                "keepalives_interval": 10,  # Intervalo entre keepalives
-                "keepalives_count": 5  # Número de keepalives antes de cerrar
+                "connect_timeout": 30,  # Aumentado a 30 segundos
+                "application_name": "padron_app",
+                "options": "-c timezone=UTC",
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5,
+                "tcp_user_timeout": 30000,  # 30 segundos en milisegundos
+                "target_session_attrs": "read-write"  # Asegura conexión a un nodo primario
             }
         )
         
