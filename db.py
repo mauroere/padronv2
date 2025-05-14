@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import streamlit as st
 from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
 # Cargar variables de entorno
 load_dotenv()
@@ -50,34 +51,102 @@ class LogCambio(Base):
 def get_database_url():
     """Obtiene la URL de la base de datos desde las variables de entorno"""
     if 'DATABASE_URL' in os.environ:
-        return os.environ['DATABASE_URL']
+        # Codificar caracteres especiales en la URL
+        db_url = os.environ['DATABASE_URL']
+        # Extraer las partes de la URL
+        parts = db_url.split('@')
+        if len(parts) == 2:
+            auth, host = parts
+            # Codificar la parte de autenticación
+            auth_parts = auth.split('://')
+            if len(auth_parts) == 2:
+                protocol, credentials = auth_parts
+                user_pass = credentials.split(':')
+                if len(user_pass) == 2:
+                    user, password = user_pass
+                    # Codificar la contraseña
+                    encoded_password = quote_plus(password)
+                    # Reconstruir la URL
+                    return f"{protocol}://{user}:{encoded_password}@{host}"
+        return db_url
     else:
-        # Fallback a SQLite local para desarrollo
-        return 'sqlite:///padron.db'
+        st.error("""
+        ⚠️ Error de configuración: No se encontró la variable de entorno DATABASE_URL.
+        
+        Para configurar la base de datos:
+        1. Ve a tu proyecto en Streamlit Cloud
+        2. Haz clic en 'Manage app' en la esquina inferior derecha
+        3. Ve a la pestaña 'Secrets'
+        4. Agrega la siguiente configuración:
+        
+        DATABASE_URL = "postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+        
+        Reemplaza [YOUR-PASSWORD] y [YOUR-PROJECT-REF] con tus credenciales de Supabase.
+        """)
+        st.stop()
+        return None
 
 def init_db():
     """Inicializa la base de datos y crea las tablas si no existen"""
-    database_url = get_database_url()
-    engine = create_engine(database_url)
-    
-    # Crear tablas si no existen
-    Base.metadata.create_all(engine)
-    
-    # Crear usuario admin por defecto
-    crear_usuario_admin(engine)
-    
-    # Crear datos de ejemplo
     try:
-        from seed_data import crear_empleados_ejemplo
-        crear_empleados_ejemplo()
+        database_url = get_database_url()
+        if not database_url:
+            return None
+            
+        # Configurar el engine con parámetros adicionales
+        engine = create_engine(
+            database_url,
+            pool_pre_ping=True,  # Verificar conexión antes de usar
+            pool_recycle=3600,   # Reciclar conexiones cada hora
+            connect_args={
+                "connect_timeout": 10,  # Timeout de conexión de 10 segundos
+                "application_name": "padron_app"  # Nombre de la aplicación
+            }
+        )
+        
+        # Probar la conexión
+        with engine.connect() as conn:
+            # Ejecutar una consulta simple para verificar la conexión
+            conn.execute("SELECT 1")
+            st.success("✅ Conexión a la base de datos establecida correctamente")
+            
+        # Crear tablas si no existen
+        Base.metadata.create_all(engine)
+        st.success("✅ Tablas creadas correctamente")
+        
+        # Crear usuario admin por defecto
+        crear_usuario_admin(engine)
+        
+        # Crear datos de ejemplo
+        try:
+            from seed_data import crear_empleados_ejemplo
+            crear_empleados_ejemplo()
+            st.success("✅ Datos de ejemplo creados correctamente")
+        except Exception as e:
+            st.warning(f"⚠️ No se pudieron crear los datos de ejemplo: {str(e)}")
+        
+        return engine
+        
     except Exception as e:
-        st.warning(f"No se pudieron crear los datos de ejemplo: {str(e)}")
-    
-    return engine
+        st.error(f"""
+        ⚠️ Error al conectar con la base de datos:
+        
+        {str(e)}
+        
+        Por favor, verifica que:
+        1. La URL de la base de datos es correcta
+        2. Las credenciales son válidas
+        3. La base de datos está accesible
+        4. El firewall permite conexiones desde Streamlit Cloud
+        """)
+        st.stop()
+        return None
 
 def get_session():
     """Retorna una sesión de base de datos"""
     engine = init_db()
+    if engine is None:
+        return None
     Session = sessionmaker(bind=engine)
     return Session()
 
@@ -87,6 +156,8 @@ def crear_usuario_admin(engine=None):
     
     if engine is None:
         engine = init_db()
+        if engine is None:
+            return
     
     Session = sessionmaker(bind=engine)
     session = Session()
