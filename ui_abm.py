@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import psycopg2
 from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener_empleado, listar_empleados
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
@@ -80,7 +81,10 @@ def mostrar_formulario_empleado(empleado=None):
                     else:
                         st.error("No se pudo crear el empleado.")
             except Exception as e:
-                st.error(f"Error al guardar: {str(e)}")
+                if hasattr(e, 'orig') and isinstance(e.orig, psycopg2.errors.UniqueViolation):
+                    st.error("Ya existe un empleado con ese DNI.")
+                else:
+                    st.error(f"Error al guardar: {str(e)}")
         return False
 
 def mostrar_lista_empleados():
