@@ -15,7 +15,12 @@ st.set_page_config(
 
 # Inicializar estado y base de datos
 init_session_state()
-get_engine()
+try:
+    get_engine()
+    st.success("✅ Conexión a la base de datos y tablas creadas correctamente")
+except Exception as e:
+    st.error(f"⚠️ Error al conectar con la base de datos: {e}")
+    st.stop()
 crear_usuario_admin()
 
 # Barra lateral

@@ -68,68 +68,41 @@ def get_engine():
     try:
         database_url = get_database_url()
         if not database_url:
-            return None
-            
-        # Configurar el engine con parámetros adicionales
+            raise Exception("No se encontró la URL de la base de datos.")
         engine = create_engine(
             database_url,
-            pool_pre_ping=True,  # Verificar conexión antes de usar
-            pool_recycle=3600,   # Reciclar conexiones cada hora
-            pool_size=5,         # Número máximo de conexiones en el pool
-            max_overflow=10,     # Número máximo de conexiones adicionales
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            pool_size=5,
+            max_overflow=10,
             connect_args={
-                "connect_timeout": 30,  # Aumentado a 30 segundos
+                "connect_timeout": 30,
                 "application_name": "padron_app",
                 "options": "-c timezone=UTC",
                 "keepalives": 1,
                 "keepalives_idle": 30,
                 "keepalives_interval": 10,
                 "keepalives_count": 5,
-                "tcp_user_timeout": 30000,  # 30 segundos en milisegundos
-                "target_session_attrs": "read-write"  # Asegura conexión a un nodo primario
+                "tcp_user_timeout": 30000,
+                "target_session_attrs": "read-write"
             }
         )
-        
         # Probar la conexión
         with engine.connect() as conn:
-            # Ejecutar una consulta simple para verificar la conexión
             conn.execute(text("SELECT 1"))
-            st.success("✅ Conexión a la base de datos establecida correctamente")
-            
         # Crear tablas si no existen
         Base.metadata.create_all(engine)
-        st.success("✅ Tablas creadas correctamente")
-        
         # Crear usuario admin por defecto
         crear_usuario_admin(engine)
-        
         # Crear datos de ejemplo
         try:
             from seed_data import crear_empleados_ejemplo
             crear_empleados_ejemplo()
-            st.success("✅ Datos de ejemplo creados correctamente")
-        except Exception as e:
-            st.warning(f"⚠️ No se pudieron crear los datos de ejemplo: {str(e)}")
-        
+        except Exception:
+            pass  # Silenciar errores de datos de ejemplo
         return engine
-        
     except Exception as e:
-        st.error(f"""
-        ⚠️ Error al conectar con la base de datos:
-        
-        {str(e)}
-        
-        Por favor, verifica que:
-        1. La URL de la base de datos es correcta
-        2. Las credenciales son válidas
-        3. La base de datos está accesible
-        4. El firewall permite conexiones desde Streamlit Cloud
-        5. La base de datos está configurada para aceptar conexiones externas
-        
-        URL actual: {database_url if 'database_url' in locals() else 'No disponible'}
-        """)
-        st.stop()
-        return None
+        raise e
 
 def get_session():
     """Retorna una sesión de base de datos"""
