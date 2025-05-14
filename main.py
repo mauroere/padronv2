@@ -4,7 +4,7 @@ from ui_abm import mostrar_pagina_abm
 from ui_import import mostrar_pagina_importacion
 from ui_log import mostrar_pagina_log
 from ui_dashboard import mostrar_pagina_dashboard
-from db import init_db, crear_usuario_admin
+from db import get_engine, crear_usuario_admin
 
 # Configuración de la página
 st.set_page_config(
@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Inicializar estado y base de datos
 init_session_state()
-init_db()
+get_engine()
 crear_usuario_admin()
 
 # Barra lateral
