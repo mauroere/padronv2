@@ -19,7 +19,7 @@ init_session_state()
 try:
     get_engine()
     if st.session_state.get('show_db_success', True):
-        st.success("✅ Conexión a la base de datos y tablas creadas correctamente")
+        print("✅ Conexión a la base de datos y tablas creadas correctamente")
         st.session_state['show_db_success'] = False
 except Exception as e:
     st.error(f"⚠️ Error al conectar con la base de datos: {e}")
