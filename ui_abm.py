@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import datetime
 from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener_empleado, listar_empleados
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
@@ -22,7 +22,7 @@ def mostrar_formulario_empleado(empleado=None):
         with col2:
             fecha_ingreso = st.date_input(
                 "📅 Fecha de Ingreso",
-                value=empleado.fecha_ingreso if empleado else datetime.now()
+                value=empleado.fecha_ingreso if empleado else datetime.datetime.now()
             )
             estado = st.selectbox(
                 "🔄 Estado",
@@ -40,7 +40,7 @@ def mostrar_formulario_empleado(empleado=None):
             errores['apellido'] = "El apellido es obligatorio."
         if not skill.strip():
             errores['skill'] = "El skill es obligatorio."
-        if not isinstance(fecha_ingreso, datetime):
+        if not isinstance(fecha_ingreso, (datetime.date, datetime.datetime)):
             errores['fecha_ingreso'] = "Fecha inválida."
         
         # Mostrar errores debajo de cada campo
@@ -50,10 +50,16 @@ def mostrar_formulario_empleado(empleado=None):
         submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
         
         if submit and not errores:
+            # Convertir fecha a datetime.datetime si es necesario
+            fecha_dt = (
+                datetime.datetime.combine(fecha_ingreso, datetime.datetime.min.time())
+                if isinstance(fecha_ingreso, datetime.date) and not isinstance(fecha_ingreso, datetime.datetime)
+                else fecha_ingreso
+            )
             datos = {
                 'nombre': nombre.strip(),
                 'apellido': apellido.strip(),
-                'fecha_ingreso': normalizar_fecha(fecha_ingreso),
+                'fecha_ingreso': normalizar_fecha(fecha_dt),
                 'estado': normalizar_estado(estado),
                 'skill': skill.strip(),
                 'es_lider': normalizar_boolean(es_lider)
