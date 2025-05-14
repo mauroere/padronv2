@@ -30,6 +30,10 @@ crear_usuario_admin()
 # Barra lateral
 with st.sidebar:
     # Mostrar logo arriba a la izquierda
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=80)
+    else:
+        st.write("")  # Espacio reservado si no hay logo
     st.markdown("## 📋 Menú de Navegación")
     # Botones de navegación visuales
     menu = None
