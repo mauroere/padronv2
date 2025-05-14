@@ -15,23 +15,43 @@ def mostrar_formulario_empleado(empleado=None):
     
     col1, col2 = st.columns(2)
     errores = {}
+
+    # Limpiar campos si se acaba de crear un empleado
+    if not empleado and st.session_state.get('reset_form'):
+        dni = ""
+        nombre = ""
+        apellido = ""
+        skill = ""
+        fecha_ingreso = datetime.datetime.now()
+        estado = "activo"
+        es_lider = False
+        st.session_state['reset_form'] = False
+    else:
+        dni = empleado.dni if empleado else ""
+        nombre = empleado.nombre if empleado else ""
+        apellido = empleado.apellido if empleado else ""
+        skill = empleado.skill if empleado else ""
+        fecha_ingreso = empleado.fecha_ingreso if empleado else datetime.datetime.now()
+        estado = empleado.estado if empleado else "activo"
+        es_lider = empleado.es_lider if empleado else False
+
     with st.form("form_empleado"):
         with col1:
-            dni = st.text_input("🆔 DNI", value=empleado.dni if empleado else "", disabled=bool(empleado))
-            nombre = st.text_input("👤 Nombre", value=empleado.nombre if empleado else "")
-            apellido = st.text_input("👥 Apellido", value=empleado.apellido if empleado else "")
-            skill = st.text_input("💡 Skill", value=empleado.skill if empleado else "")
+            dni = st.text_input("🆔 DNI", value=dni, disabled=bool(empleado))
+            nombre = st.text_input("👤 Nombre", value=nombre)
+            apellido = st.text_input("👥 Apellido", value=apellido)
+            skill = st.text_input("💡 Skill", value=skill)
         with col2:
             fecha_ingreso = st.date_input(
                 "📅 Fecha de Ingreso",
-                value=empleado.fecha_ingreso if empleado else datetime.datetime.now()
+                value=fecha_ingreso
             )
             estado = st.selectbox(
                 "🔄 Estado",
                 options=['activo', 'inactivo'],
-                index=0 if not empleado or empleado.estado == 'activo' else 1
+                index=0 if estado == 'activo' else 1
             )
-            es_lider = st.checkbox("⭐ Es Líder", value=empleado.es_lider if empleado else False)
+            es_lider = st.checkbox("⭐ Es Líder", value=es_lider)
         
         # Validaciones
         if not dni or not validar_dni(dni):
@@ -77,6 +97,7 @@ def mostrar_formulario_empleado(empleado=None):
                 else:
                     creado = crear_empleado(dni, **datos, usuario_id=st.session_state.user.id)
                     if creado:
+                        st.session_state['reset_form'] = True
                         st.success("✅ Empleado creado correctamente")
                         time.sleep(2)
                         st.rerun()

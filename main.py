@@ -80,4 +80,4 @@ else:
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("Desarrollado con ❤️ por [Tu Nombre]") 
+st.sidebar.markdown("Desarrollado por [Mauro Rementeria - mauroere@gmail.com]") 
