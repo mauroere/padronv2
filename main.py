@@ -40,33 +40,42 @@ with st.sidebar:
 if not st.session_state.logged_in:
     login_form()
 else:
-    # Menú de navegación
+    # Menú de navegación mejorado para admin
+    is_admin = st.session_state.get("rol") == "admin"
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## 📋 Menú de Navegación")
     menu = st.sidebar.radio(
-        "Navegación",
-        ["Dashboard", "Gestión de Empleados", "Importación", "Historial"]
+        "",
+        [
+            "🏠 Dashboard",
+            "👥 Gestión de Empleados",
+            "⬆️ Importación",
+            "🕑 Historial"
+        ],
+        format_func=lambda x: x.split(' ', 1)[-1]  # Solo muestra el texto sin emoji en el radio
     )
     
+    # Botón destacado solo para administradores
+    if is_admin:
+        st.sidebar.markdown("---")
+        st.sidebar.markdown(
+            "<div style='text-align:center;'><b>⚙️ Opciones de Admin</b></div>", unsafe_allow_html=True)
+        if st.sidebar.button("🚀 Cargar datos de ejemplo", help="Agrega empleados de ejemplo a la base de datos"):
+            try:
+                from seed_data import crear_empleados_ejemplo
+                crear_empleados_ejemplo()
+                st.sidebar.success("Datos de ejemplo cargados correctamente.")
+            except Exception as e:
+                st.sidebar.error(f"Error al cargar datos de ejemplo: {e}")
+    
     # Mostrar página según selección
-    if menu == "Dashboard":
+    if menu.endswith("Dashboard"):
         mostrar_pagina_dashboard()
-        # Botón solo para administradores para cargar datos de ejemplo
-        if st.session_state.get("rol") == "admin":
-            st.markdown("---")
-            if st.button("Cargar datos de ejemplo (solo admin)"):
-                try:
-                    from seed_data import crear_empleados_ejemplo
-                    crear_empleados_ejemplo()
-                    st.success("Datos de ejemplo cargados correctamente.")
-                except Exception as e:
-                    st.error(f"Error al cargar datos de ejemplo: {e}")
-    
-    elif menu == "Gestión de Empleados":
+    elif menu.endswith("Gestión de Empleados"):
         mostrar_pagina_abm()
-    
-    elif menu == "Importación":
+    elif menu.endswith("Importación"):
         mostrar_pagina_importacion()
-    
-    elif menu == "Historial":
+    elif menu.endswith("Historial"):
         mostrar_pagina_log()
 
 # Footer
