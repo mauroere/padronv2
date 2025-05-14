@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -66,8 +66,8 @@ def get_database_url():
                     user, password = user_pass
                     # Codificar la contraseña
                     encoded_password = quote_plus(password)
-                    # Reconstruir la URL
-                    return f"{protocol}://{user}:{encoded_password}@{host}"
+                    # Reconstruir la URL forzando IPv4
+                    return f"{protocol}://{user}:{encoded_password}@{host}?hostaddr=db.rujoykekjejmanavdfvl.supabase.co"
         return db_url
     else:
         st.error("""
@@ -100,14 +100,19 @@ def init_db():
             pool_recycle=3600,   # Reciclar conexiones cada hora
             connect_args={
                 "connect_timeout": 10,  # Timeout de conexión de 10 segundos
-                "application_name": "padron_app"  # Nombre de la aplicación
+                "application_name": "padron_app",  # Nombre de la aplicación
+                "options": "-c timezone=UTC",  # Forzar zona horaria UTC
+                "keepalives": 1,  # Mantener conexión viva
+                "keepalives_idle": 30,  # Tiempo de inactividad antes de enviar keepalive
+                "keepalives_interval": 10,  # Intervalo entre keepalives
+                "keepalives_count": 5  # Número de keepalives antes de cerrar
             }
         )
         
         # Probar la conexión
         with engine.connect() as conn:
             # Ejecutar una consulta simple para verificar la conexión
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
             st.success("✅ Conexión a la base de datos establecida correctamente")
             
         # Crear tablas si no existen
@@ -138,6 +143,7 @@ def init_db():
         2. Las credenciales son válidas
         3. La base de datos está accesible
         4. El firewall permite conexiones desde Streamlit Cloud
+        5. La base de datos está configurada para aceptar conexiones externas
         """)
         st.stop()
         return None
