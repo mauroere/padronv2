@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import psycopg2
 import time
+import random
 from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener_empleado, listar_empleados
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
@@ -15,6 +16,10 @@ def mostrar_formulario_empleado(empleado=None):
     
     col1, col2 = st.columns(2)
     errores = {}
+
+    # Inicializar o actualizar la clave del formulario
+    if 'form_key' not in st.session_state:
+        st.session_state['form_key'] = random.randint(0, 1_000_000)
 
     # Limpiar campos si se acaba de crear un empleado
     if not empleado and st.session_state.get('reset_form'):
@@ -35,7 +40,7 @@ def mostrar_formulario_empleado(empleado=None):
         estado = empleado.estado if empleado else "activo"
         es_lider = empleado.es_lider if empleado else False
 
-    with st.form("form_empleado"):
+    with st.form(key=f"form_empleado_{st.session_state['form_key']}"):
         with col1:
             dni = st.text_input("🆔 DNI", value=dni, disabled=bool(empleado))
             nombre = st.text_input("👤 Nombre", value=nombre)
@@ -98,6 +103,7 @@ def mostrar_formulario_empleado(empleado=None):
                     creado = crear_empleado(dni, **datos, usuario_id=st.session_state.user.id)
                     if creado:
                         st.session_state['reset_form'] = True
+                        st.session_state['form_key'] = random.randint(0, 1_000_000)
                         st.success("✅ Empleado creado correctamente")
                         time.sleep(2)
                         st.rerun()
