@@ -94,12 +94,7 @@ def get_engine():
         Base.metadata.create_all(engine)
         # Crear usuario admin por defecto
         crear_usuario_admin(engine)
-        # Crear datos de ejemplo
-        try:
-            from seed_data import crear_empleados_ejemplo
-            crear_empleados_ejemplo()
-        except Exception:
-            pass  # Silenciar errores de datos de ejemplo
+        # Eliminar la carga automática de datos de ejemplo
         return engine
     except Exception as e:
         raise e

@@ -49,6 +49,16 @@ else:
     # Mostrar página según selección
     if menu == "Dashboard":
         mostrar_pagina_dashboard()
+        # Botón solo para administradores para cargar datos de ejemplo
+        if st.session_state.get("rol") == "admin":
+            st.markdown("---")
+            if st.button("Cargar datos de ejemplo (solo admin)"):
+                try:
+                    from seed_data import crear_empleados_ejemplo
+                    crear_empleados_ejemplo()
+                    st.success("Datos de ejemplo cargados correctamente.")
+                except Exception as e:
+                    st.error(f"Error al cargar datos de ejemplo: {e}")
     
     elif menu == "Gestión de Empleados":
         mostrar_pagina_abm()
