@@ -50,24 +50,20 @@ def normalizar_boolean(valor):
     return bool(valor)
 
 def validar_archivo_importacion(df):
-    """Valida que el DataFrame tenga las columnas requeridas"""
+    """Valida que el DataFrame tenga las columnas requeridas. Devuelve lista de faltantes o True si todo ok."""
     columnas_requeridas = ['dni', 'nombre', 'apellido', 'fecha_ingreso']
     columnas_faltantes = [col for col in columnas_requeridas if col not in df.columns]
-    
     if columnas_faltantes:
-        raise ValueError(f"Faltan columnas requeridas: {', '.join(columnas_faltantes)}")
-    
+        return columnas_faltantes
     # Validar DNI
     dni_invalidos = df[~df['dni'].astype(str).str.match(r'^\d{7,8}$')]
     if not dni_invalidos.empty:
         raise ValueError(f"DNIs inválidos en las filas: {', '.join(map(str, dni_invalidos.index + 1))}")
-    
     # Validar fechas
     try:
         pd.to_datetime(df['fecha_ingreso'])
     except:
         raise ValueError("Formato de fecha inválido en la columna 'fecha_ingreso'")
-    
     return True
 
 def generar_nombre_archivo(prefix='export', extension='xlsx'):

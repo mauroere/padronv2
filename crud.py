@@ -126,29 +126,55 @@ def listar_empleados(filtros=None):
         session.close()
 
 def importar_empleados(df, usuario_id):
-    """Importa empleados desde un DataFrame"""
+    """Importa empleados desde un DataFrame de forma inteligente: actualiza solo campos no vacíos y diferentes, no sobreescribe con blancos, crea nuevos si no existen."""
     session = get_session()
     try:
         for _, row in df.iterrows():
-            empleado = Empleado(
-                dni=str(row['dni']),
-                nombre=row['nombre'],
-                apellido=row['apellido'],
-                fecha_ingreso=pd.to_datetime(row['fecha_ingreso']),
-                estado=row.get('estado', 'activo'),
-                skill=row.get('skill', ''),
-                es_lider=row.get('es_lider', False)
-            )
-            session.add(empleado)
-            
-            log = LogCambio(
-                usuario_id=usuario_id,
-                empleado_dni=str(row['dni']),
-                accion='alta',
-                detalle=f"Importación masiva: {row['nombre']} {row['apellido']}"
-            )
-            session.add(log)
-        
+            dni = str(row['dni']) if 'dni' in row and pd.notna(row['dni']) else None
+            if not dni:
+                continue  # Saltar filas sin DNI
+            empleado = session.query(Empleado).filter_by(dni=dni).first()
+            datos = {}
+            for campo in ['nombre', 'apellido', 'fecha_ingreso', 'estado', 'skill', 'es_lider']:
+                if campo in row and pd.notna(row[campo]) and str(row[campo]).strip() != '':
+                    datos[campo] = row[campo]
+            if empleado:
+                cambios = []
+                for key, value in datos.items():
+                    # Convertir fecha si es necesario
+                    if key == 'fecha_ingreso':
+                        value = pd.to_datetime(value)
+                    # Solo actualizar si es diferente y no es blanco
+                    if hasattr(empleado, key) and getattr(empleado, key) != value:
+                        cambios.append(f"{key}: {getattr(empleado, key)} -> {value}")
+                        setattr(empleado, key, value)
+                if cambios:
+                    log = LogCambio(
+                        usuario_id=usuario_id,
+                        empleado_dni=dni,
+                        accion='modificacion',
+                        detalle="Importación: " + ", ".join(cambios)
+                    )
+                    session.add(log)
+            else:
+                # Crear nuevo empleado solo con los campos presentes
+                empleado_nuevo = Empleado(
+                    dni=dni,
+                    nombre=datos.get('nombre', ''),
+                    apellido=datos.get('apellido', ''),
+                    fecha_ingreso=pd.to_datetime(datos['fecha_ingreso']) if 'fecha_ingreso' in datos else None,
+                    estado=datos.get('estado', 'activo'),
+                    skill=datos.get('skill', ''),
+                    es_lider=datos.get('es_lider', False)
+                )
+                session.add(empleado_nuevo)
+                log = LogCambio(
+                    usuario_id=usuario_id,
+                    empleado_dni=dni,
+                    accion='alta',
+                    detalle=f"Importación masiva: {datos.get('nombre', '')} {datos.get('apellido', '')}"
+                )
+                session.add(log)
         session.commit()
         return True
     except Exception as e:

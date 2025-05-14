@@ -36,16 +36,24 @@ def mostrar_pagina_importacion():
             st.dataframe(df.head(), use_container_width=True)
             
             # Validar archivo
-            validar_archivo_importacion(df)
+            validacion = validar_archivo_importacion(df)
+            columnas_faltantes = validacion if isinstance(validacion, list) else []
+            puede_importar = True
+            if columnas_faltantes:
+                st.warning(f"Faltan columnas requeridas: {', '.join(columnas_faltantes)}. Puedes continuar, pero solo se importarán los campos presentes.")
+                puede_importar = st.checkbox("Entiendo y deseo continuar con la importación parcial.")
             
             # Botón de importación
             if st.button("Importar Datos"):
-                with st.spinner("Importando datos..."):
-                    try:
-                        importar_empleados(df, st.session_state.user.id)
-                        st.success("Datos importados correctamente")
-                    except Exception as e:
-                        st.error(f"Error al importar: {str(e)}")
+                if columnas_faltantes and not puede_importar:
+                    st.error("Debes confirmar que deseas continuar con la importación parcial.")
+                else:
+                    with st.spinner("Importando datos..."):
+                        try:
+                            importar_empleados(df, st.session_state.user.id)
+                            st.success("Datos importados correctamente")
+                        except Exception as e:
+                            st.error(f"Error al importar: {str(e)}")
         
         except Exception as e:
             st.error(f"Error al procesar el archivo: {str(e)}")
