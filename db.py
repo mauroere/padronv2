@@ -1,9 +1,13 @@
-import sqlite3
+import os
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
-import os
+import streamlit as st
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 Base = declarative_base()
 
@@ -43,11 +47,32 @@ class LogCambio(Base):
     usuario = relationship("Usuario")
     empleado = relationship("Empleado")
 
+def get_database_url():
+    """Obtiene la URL de la base de datos desde las variables de entorno"""
+    if 'DATABASE_URL' in os.environ:
+        return os.environ['DATABASE_URL']
+    else:
+        # Fallback a SQLite local para desarrollo
+        return 'sqlite:///padron.db'
+
 def init_db():
     """Inicializa la base de datos y crea las tablas si no existen"""
-    db_path = 'padron.db'
-    engine = create_engine(f'sqlite:///{db_path}')
+    database_url = get_database_url()
+    engine = create_engine(database_url)
+    
+    # Crear tablas si no existen
     Base.metadata.create_all(engine)
+    
+    # Crear usuario admin por defecto
+    crear_usuario_admin(engine)
+    
+    # Crear datos de ejemplo
+    try:
+        from seed_data import crear_empleados_ejemplo
+        crear_empleados_ejemplo()
+    except Exception as e:
+        st.warning(f"No se pudieron crear los datos de ejemplo: {str(e)}")
+    
     return engine
 
 def get_session():
@@ -56,26 +81,31 @@ def get_session():
     Session = sessionmaker(bind=engine)
     return Session()
 
-def crear_usuario_admin():
+def crear_usuario_admin(engine=None):
     """Crea un usuario administrador por defecto si no existe"""
     import bcrypt
     
-    session = get_session()
-    admin = session.query(Usuario).filter_by(usuario='admin').first()
+    if engine is None:
+        engine = init_db()
     
-    if not admin:
-        password = 'admin123'  # Contraseña por defecto
-        hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        admin = Usuario(
-            usuario='admin',
-            hash_password=hashed.decode('utf-8'),
-            rol='admin'
-        )
-        session.add(admin)
-        session.commit()
+    Session = sessionmaker(bind=engine)
+    session = Session()
     
-    session.close()
+    try:
+        admin = session.query(Usuario).filter_by(usuario='admin').first()
+        
+        if not admin:
+            password = 'admin123'  # Contraseña por defecto
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            admin = Usuario(
+                usuario='admin',
+                hash_password=hashed.decode('utf-8'),
+                rol='admin'
+            )
+            session.add(admin)
+            session.commit()
+    finally:
+        session.close()
 
 if __name__ == '__main__':
-    init_db()
-    crear_usuario_admin() 
+    init_db() 
