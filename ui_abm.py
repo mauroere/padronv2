@@ -140,45 +140,29 @@ def mostrar_lista_empleados():
     if not empleados:
         st.info("No se encontraron empleados")
         return
-    # Convertir a DataFrame para mostrar
-    df = pd.DataFrame([{
-        'DNI': e.dni,
-        'Nombre': e.nombre,
-        'Apellido': e.apellido,
-        'Fecha Ingreso': formatear_fecha(e.fecha_ingreso),
-        'Estado': e.estado,
-        'Skill': e.skill,
-        'Es Líder': 'Sí' if e.es_lider else 'No'
-    } for e in empleados])
-    st.dataframe(df, use_container_width=True)
-    # Botones de acción mejorados
-    st.subheader("Acciones")
-    col1, col2 = st.columns(2)
-    with col1:
-        dni_editar = st.text_input("DNI a editar")
-        if dni_editar and st.button("✏️ Editar"):
-            empleado = obtener_empleado(dni_editar)
-            if empleado:
-                if mostrar_formulario_empleado(empleado):
-                    st.rerun()
-            else:
-                st.error("Empleado no encontrado")
-    with col2:
-        dni_eliminar = st.text_input("DNI a eliminar")
-        if dni_eliminar and st.button("🗑️ Eliminar"):
+    # Mostrar tabla con acciones ABM
+    st.subheader("Empleados")
+    for e in empleados:
+        cols = st.columns([2, 2, 2, 2, 2, 2, 1, 1])
+        cols[0].write(f"**DNI:** {e.dni}")
+        cols[1].write(f"**Nombre:** {e.nombre}")
+        cols[2].write(f"**Apellido:** {e.apellido}")
+        cols[3].write(f"**Fecha Ingreso:** {formatear_fecha(e.fecha_ingreso)}")
+        cols[4].write(f"**Estado:** {e.estado}")
+        cols[5].write(f"**Skill:** {e.skill}")
+        if cols[6].button("✏️", key=f"edit_{e.dni}", help="Editar"):
+            if mostrar_formulario_empleado(e):
+                st.rerun()
+        if cols[7].button("🗑️", key=f"delete_{e.dni}", help="Eliminar"):
             if st.session_state.rol != 'admin':
                 st.error("Solo los administradores pueden eliminar empleados")
             else:
-                empleado = obtener_empleado(dni_eliminar)
-                if not empleado:
-                    st.error("Empleado no encontrado")
-                else:
-                    if st.confirm(f"¿Estás seguro de que deseas eliminar al empleado {empleado.nombre} {empleado.apellido} (DNI: {empleado.dni})? Esta acción no se puede deshacer."):
-                        if eliminar_empleado(dni_eliminar, st.session_state.user.id):
-                            st.success("Empleado eliminado correctamente")
-                            st.rerun()
-                        else:
-                            st.error("No se pudo eliminar el empleado.")
+                if st.confirm(f"¿Estás seguro de que deseas eliminar al empleado {e.nombre} {e.apellido} (DNI: {e.dni})? Esta acción no se puede deshacer."):
+                    if eliminar_empleado(e.dni, st.session_state.user.id):
+                        st.success("Empleado eliminado correctamente")
+                        st.rerun()
+                    else:
+                        st.error("No se pudo eliminar el empleado.")
 
 def mostrar_pagina_abm():
     """Muestra la página principal de ABM"""
