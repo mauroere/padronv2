@@ -18,14 +18,9 @@ st.set_page_config(
 init_session_state()
 try:
     get_engine()
-    if not st.session_state.get('show_db_success'):
-        st.session_state['show_db_success'] = True
+    if st.session_state.get('show_db_success', True):
         st.success("✅ Conexión a la base de datos y tablas creadas correctamente")
-        time.sleep(2)
         st.session_state['show_db_success'] = False
-        st.rerun()
-    elif st.session_state.get('show_db_success'):
-        st.success("✅ Conexión a la base de datos y tablas creadas correctamente")
 except Exception as e:
     st.error(f"⚠️ Error al conectar con la base de datos: {e}")
     st.stop()
