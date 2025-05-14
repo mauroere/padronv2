@@ -8,7 +8,11 @@ from utils import formatear_fecha
 
 def mostrar_pagina_dashboard():
     """Muestra la página del dashboard"""
-    st.title("Dashboard")
+    col_logo, col_title = st.columns([1, 8])
+    with col_logo:
+        st.image("logo.png", width=80)
+    with col_title:
+        st.title("Dashboard")
     
     # Obtener datos
     empleados = listar_empleados()
