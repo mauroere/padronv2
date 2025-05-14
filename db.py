@@ -62,8 +62,9 @@ def get_database_url():
         st.stop()
         return None
 
-def init_db():
-    """Inicializa la base de datos y crea las tablas si no existen"""
+@st.cache_resource
+def get_engine():
+    """Inicializa la base de datos y crea las tablas si no existen (solo una vez por sesión)."""
     try:
         database_url = get_database_url()
         if not database_url:
@@ -132,7 +133,7 @@ def init_db():
 
 def get_session():
     """Retorna una sesión de base de datos"""
-    engine = init_db()
+    engine = get_engine()
     if engine is None:
         return None
     Session = sessionmaker(bind=engine)
@@ -143,7 +144,7 @@ def crear_usuario_admin(engine=None):
     import bcrypt
     
     if engine is None:
-        engine = init_db()
+        engine = get_engine()
         if engine is None:
             return
     
@@ -167,4 +168,4 @@ def crear_usuario_admin(engine=None):
         session.close()
 
 if __name__ == '__main__':
-    init_db() 
+    get_engine() 
