@@ -36,16 +36,7 @@ with st.sidebar:
         st.write("")  # Espacio reservado si no hay logo
 
     st.markdown("---")
-    st.title("👥 Sistema de Gestión")
-    if st.session_state.logged_in:
-        st.write(f"**Usuario:** {st.session_state.user.usuario}")
-        st.write(f"**Rol:** {st.session_state.rol}")
-        if st.button("Cerrar Sesión"):
-            logout()
-    else:
-        st.write("Por favor inicie sesión")
 
-    st.markdown("---")
     st.markdown("## 📋 Menú de Navegación")
     # Botones de navegación visuales
     menu = None
@@ -64,7 +55,18 @@ with st.sidebar:
     if 'menu' not in st.session_state:
         st.session_state['menu'] = "Dashboard"
     menu = st.session_state['menu']
+    # Login ADMIN
+    st.markdown("---")
+    st.title("👥 Sistema de Gestión")
+    if st.session_state.logged_in:
+        st.write(f"**Usuario:** {st.session_state.user.usuario}")
+        st.write(f"**Rol:** {st.session_state.rol}")
+        if st.button("Cerrar Sesión"):
+            logout()
+    else:
+        st.write("Por favor inicie sesión")
 
+    st.markdown("---")
     # Opciones de admin
     is_admin = st.session_state.get("rol") == "admin"
     if is_admin:
