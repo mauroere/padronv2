@@ -66,8 +66,8 @@ def get_database_url():
                     user, password = user_pass
                     # Codificar la contraseña
                     encoded_password = quote_plus(password)
-                    # Extraer el project ref del host original
-                    project_ref = host.split('.')[0].replace('db.', '')
+                    # Forzar el uso del project ref correcto
+                    project_ref = "rujoykekjejmanavdfvl"  # Tu project ref específico
                     # Reconstruir la URL con el formato correcto
                     return f"{protocol}://postgres:{encoded_password}@db.{project_ref}.supabase.co:5432/postgres"
         return db_url
@@ -81,9 +81,9 @@ def get_database_url():
         3. Ve a la pestaña 'Secrets'
         4. Agrega la siguiente configuración:
         
-        DATABASE_URL = "postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+        DATABASE_URL = "postgresql://postgres:[YOUR-PASSWORD]@db.rujoykekjejmanavdfvl.supabase.co:5432/postgres"
         
-        Reemplaza [YOUR-PASSWORD] y [YOUR-PROJECT-REF] con tus credenciales de Supabase.
+        Reemplaza [YOUR-PASSWORD] con tu contraseña de Supabase.
         """)
         st.stop()
         return None
