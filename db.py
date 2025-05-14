@@ -66,10 +66,8 @@ def get_database_url():
                     user, password = user_pass
                     # Codificar la contraseña
                     encoded_password = quote_plus(password)
-                    # Extraer el project ref del host original
-                    project_ref = host.split('.')[0].replace('db.', '')
-                    # Reconstruir la URL usando el Session Pooler con el project ref
-                    return f"{protocol}://{user}:{encoded_password}@aws-0-us-west-1.pooler.supabase.com:6543/{project_ref}"
+                    # Reconstruir la URL con parámetros adicionales
+                    return f"{protocol}://{user}:{encoded_password}@{host}?connect_timeout=10&application_name=padron_app&options=-c%20timezone%3DUTC"
         return db_url
     else:
         st.error("""
@@ -100,6 +98,8 @@ def init_db():
             database_url,
             pool_pre_ping=True,  # Verificar conexión antes de usar
             pool_recycle=3600,   # Reciclar conexiones cada hora
+            pool_size=5,         # Número máximo de conexiones en el pool
+            max_overflow=10,     # Número máximo de conexiones adicionales
             connect_args={
                 "connect_timeout": 10,  # Timeout de conexión de 10 segundos
                 "application_name": "padron_app",  # Nombre de la aplicación
@@ -146,6 +146,8 @@ def init_db():
         3. La base de datos está accesible
         4. El firewall permite conexiones desde Streamlit Cloud
         5. La base de datos está configurada para aceptar conexiones externas
+        
+        URL actual: {database_url if 'database_url' in locals() else 'No disponible'}
         """)
         st.stop()
         return None
