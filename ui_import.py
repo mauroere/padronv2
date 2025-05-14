@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from crud import importar_empleados
 from utils import validar_archivo_importacion, generar_nombre_archivo
+import time
 
 def mostrar_pagina_importacion():
     """Muestra la página de importación de datos"""
@@ -52,6 +53,8 @@ def mostrar_pagina_importacion():
                         try:
                             importar_empleados(df, st.session_state.user.id)
                             st.success("Datos importados correctamente")
+                            time.sleep(2)  # Dar tiempo para ver el mensaje de éxito
+                            st.rerun()  # Actualizar la vista
                         except Exception as e:
                             st.error(f"Error al importar: {str(e)}")
         
