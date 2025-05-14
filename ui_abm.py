@@ -7,7 +7,7 @@ import random
 from crud import crear_empleado, actualizar_empleado, eliminar_empleado, obtener_empleado, listar_empleados
 from utils import validar_dni, normalizar_fecha, normalizar_estado, normalizar_boolean, formatear_fecha
 
-def mostrar_formulario_empleado(empleado=None):
+def mostrar_formulario_empleado(empleado=None, form_key=None):
     """Muestra el formulario para crear/editar empleado con validación avanzada y mejor UX/UI"""
     st.markdown("### {} Empleado {}".format(
         "Editar" if empleado else "Nuevo",
@@ -40,7 +40,11 @@ def mostrar_formulario_empleado(empleado=None):
         estado = empleado.estado if empleado else "activo"
         es_lider = empleado.es_lider if empleado else False
 
-    with st.form(key=f"form_empleado_{st.session_state['form_key']}"):
+    # Usar clave única para cada formulario
+    if form_key is None:
+        form_key = f"form_empleado_nuevo_{st.session_state['form_key']}" if not empleado else f"form_empleado_edit_{dni}_{st.session_state['form_key']}"
+
+    with st.form(key=form_key):
         with col1:
             dni = st.text_input("🆔 DNI", value=dni, disabled=bool(empleado))
             nombre = st.text_input("👤 Nombre", value=nombre)
@@ -158,15 +162,26 @@ def mostrar_lista_empleados():
             if st.session_state.rol != 'admin':
                 st.error("Solo los administradores pueden eliminar empleados")
             else:
-                if st.confirm(f"¿Estás seguro de que deseas eliminar al empleado {e.nombre} {e.apellido} (DNI: {e.dni})? Esta acción no se puede deshacer."):
+                st.session_state['delete_dni'] = e.dni
+        # Confirmación de eliminación
+        if st.session_state.get('delete_dni') == e.dni:
+            st.warning(f"¿Estás seguro de que deseas eliminar al empleado {e.nombre} {e.apellido} (DNI: {e.dni})? Esta acción no se puede deshacer.")
+            col_conf, col_cancel = st.columns([1, 1])
+            with col_conf:
+                if st.button("✅ Confirmar eliminación", key=f"confirm_delete_{e.dni}"):
                     if eliminar_empleado(e.dni, st.session_state.user.id):
                         st.success("Empleado eliminado correctamente")
+                        st.session_state['delete_dni'] = None
                         st.rerun()
                     else:
                         st.error("No se pudo eliminar el empleado.")
+                        st.session_state['delete_dni'] = None
+            with col_cancel:
+                if st.button("❌ Cancelar", key=f"cancel_delete_{e.dni}"):
+                    st.session_state['delete_dni'] = None
         # Mostrar formulario de edición solo para el empleado seleccionado
         if st.session_state['edit_dni'] == e.dni:
-            if mostrar_formulario_empleado(e):
+            if mostrar_formulario_empleado(e, form_key=f"form_empleado_edit_{e.dni}_{st.session_state['form_key']}"):
                 st.session_state['edit_dni'] = None
                 st.rerun()
 
@@ -177,5 +192,5 @@ def mostrar_pagina_abm():
     with tab1:
         mostrar_lista_empleados()
     with tab2:
-        if mostrar_formulario_empleado():
+        if mostrar_formulario_empleado(form_key=f"form_empleado_nuevo_{st.session_state['form_key']}"):
             st.rerun() 
