@@ -133,14 +133,17 @@ def importar_empleados(df, usuario_id):
     session = get_session()
     try:
         for _, row in df.iterrows():
-            dni = str(row['dni']) if 'dni' in row and pd.notna(row['dni']) else None
+            dni = str(row['dni']).strip() if 'dni' in row and pd.notna(row['dni']) else None
             if not dni:
                 continue  # Saltar filas sin DNI
             empleado = session.query(Empleado).filter_by(dni=dni).first()
             datos = {}
             for campo in ['nombre', 'apellido', 'fecha_ingreso', 'estado', 'skill', 'es_lider']:
                 if campo in row and pd.notna(row[campo]) and str(row[campo]).strip() != '':
-                    datos[campo] = row[campo]
+                    if campo == 'dni':
+                        datos[campo] = str(row[campo]).strip()
+                    else:
+                        datos[campo] = row[campo]
             if empleado:
                 cambios = []
                 for key, value in datos.items():
@@ -163,11 +166,11 @@ def importar_empleados(df, usuario_id):
                 # Crear nuevo empleado solo con los campos presentes
                 empleado_nuevo = Empleado(
                     dni=dni,
-                    nombre=datos.get('nombre', ''),
-                    apellido=datos.get('apellido', ''),
+                    nombre=str(datos.get('nombre', '')).strip(),
+                    apellido=str(datos.get('apellido', '')).strip(),
                     fecha_ingreso=pd.to_datetime(datos['fecha_ingreso']) if 'fecha_ingreso' in datos else None,
-                    estado=datos.get('estado', 'activo'),
-                    skill=datos.get('skill', ''),
+                    estado=str(datos.get('estado', 'activo')).strip(),
+                    skill=str(datos.get('skill', '')).strip(),
                     es_lider=datos.get('es_lider', False)
                 )
                 session.add(empleado_nuevo)

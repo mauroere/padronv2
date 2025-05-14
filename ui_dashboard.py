@@ -184,4 +184,13 @@ def mostrar_pagina_dashboard():
                 f,
                 file_name=nombre_archivo,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            ) 
+            )
+
+    # --- Sección de depuración: Listar todos los DNIs y nombres ---
+    st.subheader("🛠️ Depuración: Lista completa de DNIs y nombres")
+    empleados_todos = listar_empleados()
+    if empleados_todos:
+        data = [{'DNI': e.dni, 'Nombre': e.nombre, 'Apellido': e.apellido} for e in empleados_todos]
+        st.dataframe(pd.DataFrame(data), use_container_width=True)
+    else:
+        st.info("No hay empleados en la base de datos.") 
