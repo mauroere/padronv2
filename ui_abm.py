@@ -187,6 +187,10 @@ def mostrar_lista_empleados():
 
 def mostrar_pagina_abm():
     """Muestra la página principal de ABM"""
+    # Inicializar form_key si no existe
+    if 'form_key' not in st.session_state:
+        st.session_state['form_key'] = random.randint(0, 1_000_000)
+        
     st.title("Gestión de Empleados")
     tab1, tab2 = st.tabs(["Lista de Empleados", "Nuevo Empleado"])
     with tab1:
