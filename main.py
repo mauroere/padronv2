@@ -34,9 +34,6 @@ with st.sidebar:
         st.image("logo.png", width=80)
     else:
         st.write("")  # Espacio reservado si no hay logo
-
-    st.markdown("---")
-
     st.markdown("## 📋 Menú de Navegación")
     # Botones de navegación visuales
     menu = None
@@ -65,13 +62,11 @@ with st.sidebar:
             logout()
     else:
         st.write("Por favor inicie sesión")
-
-    st.markdown("---")
     # Opciones de admin
     is_admin = st.session_state.get("rol") == "admin"
     if is_admin:
-        st.markdown("---")
-        st.markdown("<div style='text-align:center;'><b>⚙️ Opciones de Admin</b></div>", unsafe_allow_html=True)
+        
+        st.markdown("<b>⚙️ Opciones de Admin</b>", unsafe_allow_html=True)
         if st.button("🚀 Cargar datos de ejemplo", help="Agrega empleados de ejemplo a la base de datos"):
             try:
                 from seed_data import crear_empleados_ejemplo
@@ -79,7 +74,6 @@ with st.sidebar:
                 st.success("Datos de ejemplo cargados correctamente.")
             except Exception as e:
                 st.error(f"Error al cargar datos de ejemplo: {e}")
-
 # Navegación
 if not st.session_state.logged_in:
     login_form()
@@ -93,7 +87,6 @@ else:
         mostrar_pagina_importacion()
     elif menu == "Historial":
         mostrar_pagina_log()
-
 # Footer
 st.sidebar.markdown("---")
 st.sidebar.markdown("Desarrollado por [Mauro Rementeria - mauroere@gmail.com]") 
