@@ -140,7 +140,9 @@ def mostrar_lista_empleados():
     if not empleados:
         st.info("No se encontraron empleados")
         return
-    # Mostrar tabla con acciones ABM
+    # Controlar edición con variable de sesión
+    if 'edit_dni' not in st.session_state:
+        st.session_state['edit_dni'] = None
     st.subheader("Empleados")
     for e in empleados:
         cols = st.columns([2, 2, 2, 2, 2, 2, 1, 1])
@@ -151,8 +153,7 @@ def mostrar_lista_empleados():
         cols[4].write(f"**Estado:** {e.estado}")
         cols[5].write(f"**Skill:** {e.skill}")
         if cols[6].button("✏️", key=f"edit_{e.dni}", help="Editar"):
-            if mostrar_formulario_empleado(e):
-                st.rerun()
+            st.session_state['edit_dni'] = e.dni
         if cols[7].button("🗑️", key=f"delete_{e.dni}", help="Eliminar"):
             if st.session_state.rol != 'admin':
                 st.error("Solo los administradores pueden eliminar empleados")
@@ -163,6 +164,11 @@ def mostrar_lista_empleados():
                         st.rerun()
                     else:
                         st.error("No se pudo eliminar el empleado.")
+        # Mostrar formulario de edición solo para el empleado seleccionado
+        if st.session_state['edit_dni'] == e.dni:
+            if mostrar_formulario_empleado(e):
+                st.session_state['edit_dni'] = None
+                st.rerun()
 
 def mostrar_pagina_abm():
     """Muestra la página principal de ABM"""
