@@ -109,8 +109,11 @@ def listar_empleados(filtros=None):
             for key, value in filtros.items():
                 if value is not None and value != "":
                     column = getattr(Empleado, key)
+                    # Si el campo es DNI, usar búsqueda exacta
+                    if key == 'dni':
+                        query = query.filter(column == value)
                     # Si el campo es string, usar ilike
-                    if isinstance(column.type, String):
+                    elif isinstance(column.type, String):
                         query = query.filter(column.ilike(f"%{value}%"))
                     # Si el campo es booleano, comparar directamente
                     elif isinstance(column.type, Boolean):

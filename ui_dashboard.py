@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
-from crud import listar_empleados
+from crud import listar_empleados, obtener_empleado
 from utils import formatear_fecha
 
 def mostrar_pagina_dashboard():
@@ -65,6 +65,30 @@ def mostrar_pagina_dashboard():
             title="Distribución por Estado"
         )
         st.plotly_chart(fig_estado, use_container_width=True)
+    
+    # Sección de verificación
+    st.subheader("🔍 Verificación de Empleados")
+    dni_verificar = st.text_input("Ingrese el DNI a verificar")
+    if dni_verificar:
+        empleado = obtener_empleado(dni_verificar)
+        if empleado:
+            st.success("✅ Empleado encontrado")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**Datos del empleado:**")
+                st.write(f"- DNI: {empleado.dni}")
+                st.write(f"- Nombre: {empleado.nombre}")
+                st.write(f"- Apellido: {empleado.apellido}")
+                st.write(f"- Estado: {empleado.estado}")
+                st.write(f"- Skill: {empleado.skill}")
+                st.write(f"- Es Líder: {'Sí' if empleado.es_lider else 'No'}")
+                st.write(f"- Fecha de ingreso: {formatear_fecha(empleado.fecha_ingreso)}")
+        else:
+            st.error("❌ No se encontró ningún empleado con ese DNI")
+            st.info("Sugerencias:")
+            st.write("1. Verifique que el DNI esté correctamente escrito")
+            st.write("2. Intente importar el empleado nuevamente")
+            st.write("3. Verifique que el archivo de importación tenga el formato correcto")
     
     # Gráfico de barras - Ingresos por mes
     with col2:
