@@ -51,39 +51,13 @@ class LogCambio(Base):
 def get_database_url():
     """Obtiene la URL de la base de datos desde las variables de entorno"""
     if 'DATABASE_URL' in os.environ:
-        # Codificar caracteres especiales en la URL
-        db_url = os.environ['DATABASE_URL']
-        # Extraer las partes de la URL
-        parts = db_url.split('@')
-        if len(parts) == 2:
-            auth, host = parts
-            # Codificar la parte de autenticación
-            auth_parts = auth.split('://')
-            if len(auth_parts) == 2:
-                protocol, credentials = auth_parts
-                user_pass = credentials.split(':')
-                if len(user_pass) == 2:
-                    user, password = user_pass
-                    # Codificar la contraseña manualmente para caracteres especiales
-                    encoded_password = password.replace('(', '%28').replace(')', '%29')
-                    # Forzar el uso del project ref correcto
-                    project_ref = "rujoykekjejmanavdfvl"  # Tu project ref específico
-                    # Reconstruir la URL con el formato correcto y parámetros adicionales
-                    return f"{protocol}://postgres:{encoded_password}@db.{project_ref}.supabase.co:5432/postgres?hostaddr=db.{project_ref}.supabase.co"
-        return db_url
+        return os.environ['DATABASE_URL']
     else:
         st.error("""
         ⚠️ Error de configuración: No se encontró la variable de entorno DATABASE_URL.
-        
-        Para configurar la base de datos:
-        1. Ve a tu proyecto en Streamlit Cloud
-        2. Haz clic en 'Manage app' en la esquina inferior derecha
-        3. Ve a la pestaña 'Secrets'
-        4. Agrega la siguiente configuración:
-        
-        DATABASE_URL = "postgresql://postgres:Suj73hv)))9@db.rujoykekjejmanavdfvl.supabase.co:5432/postgres"
-        
-        Nota: La contraseña debe ser exactamente: Suj73hv)))9
+
+        Ejemplo de configuración:
+        DATABASE_URL = "postgresql://postgres.rujoykekjejmanavdfvl:Suj73hv)))9@aws-0-us-east-2.pooler.supabase.com:5432/postgres"
         """)
         st.stop()
         return None
