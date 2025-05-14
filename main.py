@@ -6,6 +6,7 @@ from ui_log import mostrar_pagina_log
 from ui_dashboard import mostrar_pagina_dashboard
 from db import get_engine, crear_usuario_admin
 import time
+import os
 
 # Configuración de la página
 st.set_page_config(
@@ -28,57 +29,67 @@ crear_usuario_admin()
 
 # Barra lateral
 with st.sidebar:
+    # Mostrar logo arriba a la izquierda
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=80)
+    else:
+        st.write("")  # Espacio reservado si no hay logo
+
+    st.markdown("---")
     st.title("👥 Sistema de Gestión")
-    
     if st.session_state.logged_in:
-        st.write(f"Usuario: {st.session_state.user.usuario}")
-        st.write(f"Rol: {st.session_state.rol}")
-        
+        st.write(f"**Usuario:** {st.session_state.user.usuario}")
+        st.write(f"**Rol:** {st.session_state.rol}")
         if st.button("Cerrar Sesión"):
             logout()
     else:
         st.write("Por favor inicie sesión")
 
+    st.markdown("---")
+    st.markdown("## 📋 Menú de Navegación")
+    # Botones de navegación visuales
+    menu = None
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🏠 Dashboard"):
+            st.session_state['menu'] = "Dashboard"
+        if st.button("👥 Empleados"):
+            st.session_state['menu'] = "Gestión de Empleados"
+    with col2:
+        if st.button("⬆️ Importación"):
+            st.session_state['menu'] = "Importación"
+        if st.button("🕑 Historial"):
+            st.session_state['menu'] = "Historial"
+    # Valor por defecto
+    if 'menu' not in st.session_state:
+        st.session_state['menu'] = "Dashboard"
+    menu = st.session_state['menu']
+
+    # Opciones de admin
+    is_admin = st.session_state.get("rol") == "admin"
+    if is_admin:
+        st.markdown("---")
+        st.markdown("<div style='text-align:center;'><b>⚙️ Opciones de Admin</b></div>", unsafe_allow_html=True)
+        if st.button("🚀 Cargar datos de ejemplo", help="Agrega empleados de ejemplo a la base de datos"):
+            try:
+                from seed_data import crear_empleados_ejemplo
+                crear_empleados_ejemplo()
+                st.success("Datos de ejemplo cargados correctamente.")
+            except Exception as e:
+                st.error(f"Error al cargar datos de ejemplo: {e}")
+
 # Navegación
 if not st.session_state.logged_in:
     login_form()
 else:
-    # Menú de navegación mejorado para admin
-    is_admin = st.session_state.get("rol") == "admin"
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("## 📋 Menú de Navegación")
-    menu = st.sidebar.radio(
-        "",
-        [
-            "🏠 Dashboard",
-            "👥 Gestión de Empleados",
-            "⬆️ Importación",
-            "🕑 Historial"
-        ],
-        format_func=lambda x: x.split(' ', 1)[-1]  # Solo muestra el texto sin emoji en el radio
-    )
-    
-    # Botón destacado solo para administradores
-    if is_admin:
-        st.sidebar.markdown("---")
-        st.sidebar.markdown(
-            "<div style='text-align:center;'><b>⚙️ Opciones de Admin</b></div>", unsafe_allow_html=True)
-        if st.sidebar.button("🚀 Cargar datos de ejemplo", help="Agrega empleados de ejemplo a la base de datos"):
-            try:
-                from seed_data import crear_empleados_ejemplo
-                crear_empleados_ejemplo()
-                st.sidebar.success("Datos de ejemplo cargados correctamente.")
-            except Exception as e:
-                st.sidebar.error(f"Error al cargar datos de ejemplo: {e}")
-    
     # Mostrar página según selección
-    if menu.endswith("Dashboard"):
+    if menu == "Dashboard":
         mostrar_pagina_dashboard()
-    elif menu.endswith("Gestión de Empleados"):
+    elif menu == "Gestión de Empleados":
         mostrar_pagina_abm()
-    elif menu.endswith("Importación"):
+    elif menu == "Importación":
         mostrar_pagina_importacion()
-    elif menu.endswith("Historial"):
+    elif menu == "Historial":
         mostrar_pagina_log()
 
 # Footer
