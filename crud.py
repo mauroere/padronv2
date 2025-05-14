@@ -1,6 +1,7 @@
 from db import get_session, Empleado, LogCambio
 from datetime import datetime
 import pandas as pd
+from sqlalchemy import String, Boolean, Integer
 
 def crear_empleado(dni, nombre, apellido, fecha_ingreso, estado, skill, es_lider, usuario_id):
     """Crea un nuevo empleado y registra el cambio en el log"""
@@ -106,8 +107,19 @@ def listar_empleados(filtros=None):
         
         if filtros:
             for key, value in filtros.items():
-                if value:
-                    query = query.filter(getattr(Empleado, key).ilike(f"%{value}%"))
+                if value is not None and value != "":
+                    column = getattr(Empleado, key)
+                    # Si el campo es string, usar ilike
+                    if isinstance(column.type, String):
+                        query = query.filter(column.ilike(f"%{value}%"))
+                    # Si el campo es booleano, comparar directamente
+                    elif isinstance(column.type, Boolean):
+                        query = query.filter(column == value)
+                    # Si el campo es numérico, comparar directamente
+                    elif isinstance(column.type, Integer):
+                        query = query.filter(column == value)
+                    else:
+                        query = query.filter(column == value)
         
         return query.all()
     finally:
