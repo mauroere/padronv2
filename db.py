@@ -66,8 +66,8 @@ def get_database_url():
                     user, password = user_pass
                     # Codificar la contraseña
                     encoded_password = quote_plus(password)
-                    # Reconstruir la URL forzando IPv4
-                    return f"{protocol}://{user}:{encoded_password}@{host}?hostaddr=db.rujoykekjejmanavdfvl.supabase.co"
+                    # Reconstruir la URL usando el Session Pooler
+                    return f"{protocol}://{user}:{encoded_password}@aws-0-us-west-1.pooler.supabase.com:6543/postgres"
         return db_url
     else:
         st.error("""
