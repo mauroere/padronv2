@@ -66,8 +66,10 @@ def get_database_url():
                     user, password = user_pass
                     # Codificar la contraseña
                     encoded_password = quote_plus(password)
-                    # Reconstruir la URL con parámetros adicionales
-                    return f"{protocol}://{user}:{encoded_password}@{host}?connect_timeout=10&application_name=padron_app&options=-c%20timezone%3DUTC"
+                    # Extraer el project ref del host original
+                    project_ref = host.split('.')[0].replace('db.', '')
+                    # Reconstruir la URL con el formato correcto
+                    return f"{protocol}://postgres:{encoded_password}@db.{project_ref}.supabase.co:5432/postgres"
         return db_url
     else:
         st.error("""
