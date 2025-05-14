@@ -79,7 +79,7 @@ def mostrar_formulario_empleado(empleado=None):
                     if creado:
                         st.success("✅ Empleado creado correctamente")
                         time.sleep(2)
-                        st.experimental_rerun()
+                        st.rerun()
                         return True
                     else:
                         st.error("No se pudo crear el empleado.")
