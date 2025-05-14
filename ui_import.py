@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from crud import importar_empleados
+from crud import importar_empleados, listar_empleados
 from utils import validar_archivo_importacion, generar_nombre_archivo
 import time
 
@@ -43,7 +43,19 @@ def mostrar_pagina_importacion():
             if columnas_faltantes:
                 st.warning(f"Faltan columnas requeridas: {', '.join(columnas_faltantes)}. Puedes continuar, pero solo se importarán los campos presentes.")
                 puede_importar = st.checkbox("Entiendo y deseo continuar con la importación parcial.")
-            
+
+            # --- DEBUG VISUAL: Mostrar DNIs y existencia ---
+            st.subheader("Debug: Estado de los DNIs a importar")
+            empleados_existentes = {e.dni for e in listar_empleados()}
+            resumen = []
+            for _, row in df.iterrows():
+                dni = str(row['dni']).strip() if 'dni' in row and pd.notna(row['dni']) else None
+                if not dni:
+                    continue
+                existe = dni in empleados_existentes
+                resumen.append({'DNI': dni, 'Ya existe': 'Sí' if existe else 'No'})
+            st.dataframe(pd.DataFrame(resumen), use_container_width=True)
+
             # Botón de importación
             if st.button("Importar Datos"):
                 if columnas_faltantes and not puede_importar:
@@ -51,9 +63,15 @@ def mostrar_pagina_importacion():
                 else:
                     with st.spinner("Importando datos..."):
                         try:
+                            # --- Contadores para debug ---
+                            empleados_antes = {e.dni for e in listar_empleados()}
                             importar_empleados(df, st.session_state.user.id)
-                            st.success("Datos importados correctamente")
-                            time.sleep(2)  # Dar tiempo para ver el mensaje de éxito
+                            time.sleep(1)
+                            empleados_despues = {e.dni for e in listar_empleados()}
+                            nuevos = empleados_despues - empleados_antes
+                            st.success(f"Datos importados correctamente. Nuevos empleados creados: {len(nuevos)}")
+                            if nuevos:
+                                st.info(f"DNIs nuevos: {', '.join(nuevos)}")
                             st.rerun()  # Actualizar la vista
                         except Exception as e:
                             st.error(f"Error al importar: {str(e)}")
