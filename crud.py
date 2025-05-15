@@ -74,18 +74,17 @@ def eliminar_empleado(dni, usuario_id):
         empleado = session.query(Empleado).filter_by(dni=dni).first()
         if not empleado:
             return False
-            
-        log = LogCambio(
-            usuario_id=usuario_id,
-            empleado_dni=dni,
-            accion='baja',
-            detalle=f"Baja de empleado: {empleado.nombre} {empleado.apellido}"
-        )
-        session.add(log)
-        
-        session.delete(empleado)
-        session.commit()
-        return True
+        # Verificar si tiene logs asociados
+        logs = session.query(LogCambio).filter_by(empleado_dni=dni).count()
+        if logs > 0:
+            # No eliminar, solo marcar como inactivo
+            empleado.activo = False
+            session.commit()
+            return "inactivo"
+        else:
+            session.delete(empleado)
+            session.commit()
+            return True
     except Exception as e:
         session.rollback()
         raise e
@@ -104,7 +103,7 @@ def listar_empleados(filtros=None):
     """Lista todos los empleados con filtros opcionales"""
     session = get_session()
     try:
-        query = session.query(Empleado)
+        query = session.query(Empleado).filter_by(activo=True)
         
         if filtros:
             for key, value in filtros.items():

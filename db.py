@@ -34,6 +34,7 @@ class Empleado(Base):
     es_lider = Column(Boolean, default=False)
     fecha_creacion = Column(DateTime, default=datetime.now)
     fecha_actualizacion = Column(DateTime, onupdate=datetime.now)
+    activo = Column(Boolean, default=True)
 
 class LogCambio(Base):
     __tablename__ = 'log_cambios'

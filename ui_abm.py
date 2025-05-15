@@ -169,7 +169,12 @@ def mostrar_lista_empleados():
             col_conf, col_cancel = st.columns([1, 1])
             with col_conf:
                 if st.button("✅ Confirmar eliminación", key=f"confirm_delete_{e.dni}"):
-                    if eliminar_empleado(e.dni, st.session_state.user.id):
+                    resultado = eliminar_empleado(e.dni, st.session_state.user.id)
+                    if resultado == "inactivo":
+                        st.info("El empleado tiene historial y fue marcado como inactivo. No se eliminó físicamente para preservar la auditoría.")
+                        st.session_state['delete_dni'] = None
+                        st.rerun()
+                    elif resultado:
                         st.success("Empleado eliminado correctamente")
                         st.session_state['delete_dni'] = None
                         st.rerun()
