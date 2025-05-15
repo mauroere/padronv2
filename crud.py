@@ -194,7 +194,7 @@ def obtener_log_cambios(filtros=None):
     """Obtiene el historial de cambios con filtros opcionales"""
     session = get_session()
     try:
-        query = session.query(LogCambio)
+        query = session.query(LogCambio).options(joinedload(LogCambio.usuario))
         
         if filtros:
             if 'usuario_id' in filtros:
