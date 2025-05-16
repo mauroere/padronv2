@@ -32,7 +32,6 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     st.markdown("<b>➕ Campos personalizados</b>", unsafe_allow_html=True)
     if st.button("Agregar campo personalizado", key=f"agregar_campo_{form_key}"):
         st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
-        st.experimental_rerun()
 
     # Manejar eliminación de campos personalizados fuera del formulario
     if st.session_state.get('eliminar_campo') is not None:
