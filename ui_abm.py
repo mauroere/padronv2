@@ -14,13 +14,10 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         f"<span style='color:#888'>({empleado.dni})</span>" if empleado else ""
     ), unsafe_allow_html=True)
     
-    # Inicializar campos personalizados en session_state
-    if 'campos_personalizados' not in st.session_state:
-        st.session_state['campos_personalizados'] = []
-    if 'agregar_campo' not in st.session_state:
-        st.session_state['agregar_campo'] = False
-    if 'eliminar_campo' not in st.session_state:
-        st.session_state['eliminar_campo'] = None
+    # Inicializar campos personalizados en session_state por formulario
+    campos_key = f'campos_personalizados_{form_key}'
+    if campos_key not in st.session_state:
+        st.session_state[campos_key] = []
 
     # Obtener valores existentes para autocompletado
     empleados = listar_empleados()
@@ -31,11 +28,11 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     # Botón para agregar campo personalizado (fuera del formulario)
     st.markdown("<b>➕ Campos personalizados</b>", unsafe_allow_html=True)
     if st.button("Agregar campo personalizado", key=f"agregar_campo_{form_key}"):
-        st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
+        st.session_state[campos_key].append({"nombre": "", "valor": ""})
 
     # Manejar eliminación de campos personalizados fuera del formulario
     if st.session_state.get('eliminar_campo') is not None:
-        st.session_state['campos_personalizados'].pop(st.session_state['eliminar_campo'])
+        st.session_state[campos_key].pop(st.session_state['eliminar_campo'])
         st.session_state['eliminar_campo'] = None
         st.rerun()
 
@@ -58,7 +55,7 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         usuario_remedy = ""
         usuario_t3 = ""
         st.session_state['reset_form'] = False
-        st.session_state['campos_personalizados'] = []
+        st.session_state[campos_key] = []
     else:
         dni = empleado.dni if empleado else ""
         nombre = empleado.nombre if empleado else ""
@@ -76,7 +73,7 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         usuario_hada = getattr(empleado, 'usuario_hada', "") if empleado else ""
         usuario_remedy = getattr(empleado, 'usuario_remedy', "") if empleado else ""
         usuario_t3 = getattr(empleado, 'usuario_t3', "") if empleado else ""
-        st.session_state['campos_personalizados'] = getattr(empleado, 'campos_personalizados', []) if empleado else []
+        st.session_state[campos_key] = getattr(empleado, 'campos_personalizados', []) if empleado else []
 
     # Usar clave única para cada formulario
     if form_key is None:
@@ -188,7 +185,7 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         # Sección: Campos personalizados
         with st.expander("➕ Campos personalizados", expanded=False):
             campos_personalizados = []
-            for i, campo in enumerate(st.session_state['campos_personalizados']):
+            for i, campo in enumerate(st.session_state[campos_key]):
                 col1, col2, col3 = st.columns([2, 2, 1])
                 with col1:
                     campo["nombre"] = st.text_input(f"Nombre campo {i+1}", value=campo["nombre"], key=f"nombre_campo_{form_key}_{i}")
@@ -196,21 +193,21 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                     campo["valor"] = st.text_input(f"Valor campo {i+1}", value=campo["valor"], key=f"valor_campo_{form_key}_{i}")
                 with col3:
                     if st.form_submit_button("🗑️", key=f"del_campo_{form_key}_{i}"):
-                        st.session_state['eliminar_campo'] = i
+                        st.session_state[campos_key].pop(i)
                         st.rerun()
                 campos_personalizados.append(campo)
 
         # Botones de acción
         col1, col2 = st.columns([1, 4])
         with col1:
-            submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
+            submit = st.form_submit_button("💾 Guardar", disabled=len(errores) > 0)
         with col2:
             limpiar = st.form_submit_button("🔄 Limpiar formulario")
             if limpiar:
                 st.session_state['reset_form'] = True
                 st.rerun()
         
-        if submit and not errores:
+        if submit and len(errores) == 0:
             # Convertir fecha a datetime.datetime si es necesario
             fecha_dt = (
                 datetime.datetime.combine(fecha_ingreso, datetime.datetime.min.time())
