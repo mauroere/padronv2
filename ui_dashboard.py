@@ -21,9 +21,6 @@ def mostrar_pagina_dashboard():
         st.warning("Botón solo para administradores. Ejecuta la migración de nuevos campos en la tabla empleados.")
         if st.button("Ejecutar migración de nuevos campos empleados 🛠️"):
             alter_statements = [
-                # Renombrar mail a email si existe
-                "DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='empleados' AND column_name='mail') THEN EXECUTE 'ALTER TABLE empleados RENAME COLUMN mail TO email'; END IF; END $$;",
-                # Agregar solo las columnas faltantes
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS telefono VARCHAR;",
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS direccion VARCHAR;",
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS area VARCHAR;",
@@ -37,6 +34,17 @@ def mostrar_pagina_dashboard():
             try:
                 engine = get_engine()
                 with engine.connect() as conn:
+                    # Verificar si existe la columna 'mail' y renombrar a 'email'
+                    result = conn.execute(text("""
+                        SELECT 1 FROM information_schema.columns WHERE table_name = 'empleados' AND column_name = 'mail'
+                    """))
+                    if result.fetchone():
+                        try:
+                            conn.execute(text("ALTER TABLE empleados RENAME COLUMN mail TO email;"))
+                            st.info("Columna 'mail' renombrada a 'email'.")
+                        except Exception as e:
+                            st.info(f"Aviso al renombrar: {str(e)}")
+                    # Agregar columnas faltantes
                     for stmt in alter_statements:
                         try:
                             conn.execute(text(stmt))
