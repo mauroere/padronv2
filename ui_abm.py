@@ -28,6 +28,17 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     areas_unicas = sorted(list(set(getattr(e, 'area', '') for e in empleados if getattr(e, 'area', ''))))
     proyectos_unicos = sorted(list(set(getattr(e, 'proyecto', '') for e in empleados if getattr(e, 'proyecto', ''))))
 
+    # Botón para agregar campo personalizado (fuera del formulario)
+    st.markdown("<b>➕ Campos personalizados</b>", unsafe_allow_html=True)
+    if st.button("Agregar campo personalizado"):
+        st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
+
+    # Manejar eliminación de campos personalizados fuera del formulario
+    if st.session_state.get('eliminar_campo') is not None:
+        st.session_state['campos_personalizados'].pop(st.session_state['eliminar_campo'])
+        st.session_state['eliminar_campo'] = None
+        st.rerun()
+
     # Datos iniciales
     if not empleado and st.session_state.get('reset_form'):
         dni = ""
@@ -71,17 +82,6 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     if form_key is None:
         form_key = f"form_empleado_nuevo_{st.session_state['form_key']}" if not empleado else f"form_empleado_edit_{dni}_{st.session_state['form_key']}"
 
-    # Manejar acciones de campos personalizados fuera del formulario
-    if st.session_state.get('agregar_campo'):
-        st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
-        st.session_state['agregar_campo'] = False
-        st.rerun()
-    
-    if st.session_state.get('eliminar_campo') is not None:
-        st.session_state['campos_personalizados'].pop(st.session_state['eliminar_campo'])
-        st.session_state['eliminar_campo'] = None
-        st.rerun()
-
     with st.form(key=form_key):
         # Sección: Datos personales
         with st.expander("👤 Datos personales", expanded=True):
@@ -110,22 +110,28 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                 estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], 
                                     index=0 if estado == "activo" else 1,
                                     help="Estado actual del empleado")
-                skill = st.selectbox("💡 Skill*", options=[""] + skills_unicos,
-                                   index=0 if not skill else skills_unicos.index(skill) + 1,
-                                   help="Habilidad o especialidad del empleado")
-                if skill == "":
-                    skill = st.text_input("💡 Nuevo Skill", help="Agregar un nuevo skill")
+                # Skill con opción Otro
+                skill_options = skills_unicos + ["Otro..."] if skills_unicos else ["Otro..."]
+                skill_select = st.selectbox("💡 Skill*", options=skill_options, index=skill_options.index(skill) if skill in skill_options else len(skill_options)-1, help="Habilidad o especialidad del empleado")
+                if skill_select == "Otro...":
+                    skill = st.text_input("💡 Nuevo Skill", value=skill if skill not in skills_unicos else "", help="Agregar un nuevo skill")
+                else:
+                    skill = skill_select
             with col4:
-                area = st.selectbox("🏢 Área", options=[""] + areas_unicas,
-                                  index=0 if not area else areas_unicas.index(area) + 1,
-                                  help="Área o departamento")
-                if area == "":
-                    area = st.text_input("🏢 Nueva Área", help="Agregar una nueva área")
-                proyecto = st.selectbox("📁 Proyecto", options=[""] + proyectos_unicos,
-                                     index=0 if not proyecto else proyectos_unicos.index(proyecto) + 1,
-                                     help="Proyecto asignado")
-                if proyecto == "":
-                    proyecto = st.text_input("📁 Nuevo Proyecto", help="Agregar un nuevo proyecto")
+                # Área con opción Otro
+                area_options = areas_unicas + ["Otro..."] if areas_unicas else ["Otro..."]
+                area_select = st.selectbox("🏢 Área", options=area_options, index=area_options.index(area) if area in area_options else len(area_options)-1, help="Área o departamento")
+                if area_select == "Otro...":
+                    area = st.text_input("🏢 Nueva Área", value=area if area not in areas_unicas else "", help="Agregar una nueva área")
+                else:
+                    area = area_select
+                # Proyecto con opción Otro
+                proyecto_options = proyectos_unicos + ["Otro..."] if proyectos_unicos else ["Otro..."]
+                proyecto_select = st.selectbox("📁 Proyecto", options=proyecto_options, index=proyecto_options.index(proyecto) if proyecto in proyecto_options else len(proyecto_options)-1, help="Proyecto asignado")
+                if proyecto_select == "Otro...":
+                    proyecto = st.text_input("📁 Nuevo Proyecto", value=proyecto if proyecto not in proyectos_unicos else "", help="Agregar un nuevo proyecto")
+                else:
+                    proyecto = proyecto_select
                 es_lider = st.checkbox("⭐ ¿Es líder?", value=es_lider,
                                      help="Indica si el empleado es líder de equipo")
 
@@ -145,10 +151,6 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
 
         # Sección: Campos personalizados
         with st.expander("➕ Campos personalizados", expanded=False):
-            if st.form_submit_button("➕ Agregar campo personalizado"):
-                st.session_state['agregar_campo'] = True
-                st.rerun()
-            
             campos_personalizados = []
             for i, campo in enumerate(st.session_state['campos_personalizados']):
                 col1, col2, col3 = st.columns([2, 2, 1])
