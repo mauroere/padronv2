@@ -21,7 +21,9 @@ def mostrar_pagina_dashboard():
         st.warning("Botón solo para administradores. Ejecuta la migración de nuevos campos en la tabla empleados.")
         if st.button("Ejecutar migración de nuevos campos empleados 🛠️"):
             alter_statements = [
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS email VARCHAR;",
+                # Renombrar mail a email si existe
+                "DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='empleados' AND column_name='mail') THEN EXECUTE 'ALTER TABLE empleados RENAME COLUMN mail TO email'; END IF; END $$;",
+                # Agregar solo las columnas faltantes
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS telefono VARCHAR;",
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS direccion VARCHAR;",
                 "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS area VARCHAR;",
