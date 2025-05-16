@@ -43,6 +43,22 @@ def mostrar_pagina_dashboard():
                 st.success("Migración ejecutada correctamente. Ya puedes usar los nuevos campos.")
             except Exception as e:
                 st.error(f"Error al ejecutar la migración: {str(e)}")
+        # Botón para inspeccionar columnas actuales
+        if st.button("Mostrar columnas actuales de empleados"):
+            try:
+                engine = get_engine()
+                with engine.connect() as conn:
+                    result = conn.execute(text("""
+                        SELECT column_name, data_type
+                        FROM information_schema.columns
+                        WHERE table_name = 'empleados'
+                        ORDER BY ordinal_position;
+                    """))
+                    columns = result.fetchall()
+                    df_cols = pd.DataFrame(columns, columns=["Columna", "Tipo de dato"])
+                    st.dataframe(df_cols, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error al consultar columnas: {str(e)}")
     
     # Obtener datos
     empleados = listar_empleados()
