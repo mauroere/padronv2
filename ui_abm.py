@@ -194,9 +194,9 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         # Botones de acción
         col1, col2 = st.columns([1, 4])
         with col1:
-            submit = st.form_submit_button("💾 Guardar", disabled=bool(errores), key=f"guardar_{form_key}")
+            submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
         with col2:
-            limpiar = st.form_submit_button("🔄 Limpiar formulario", key=f"limpiar_{form_key}")
+            limpiar = st.form_submit_button("🔄 Limpiar formulario")
             if limpiar:
                 st.session_state['reset_form'] = True
                 st.rerun()
