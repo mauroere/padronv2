@@ -17,6 +17,10 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     # Inicializar campos personalizados en session_state
     if 'campos_personalizados' not in st.session_state:
         st.session_state['campos_personalizados'] = []
+    if 'agregar_campo' not in st.session_state:
+        st.session_state['agregar_campo'] = False
+    if 'eliminar_campo' not in st.session_state:
+        st.session_state['eliminar_campo'] = None
 
     # Obtener valores existentes para autocompletado
     empleados = listar_empleados()
@@ -66,6 +70,17 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     # Usar clave única para cada formulario
     if form_key is None:
         form_key = f"form_empleado_nuevo_{st.session_state['form_key']}" if not empleado else f"form_empleado_edit_{dni}_{st.session_state['form_key']}"
+
+    # Manejar acciones de campos personalizados fuera del formulario
+    if st.session_state.get('agregar_campo'):
+        st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
+        st.session_state['agregar_campo'] = False
+        st.rerun()
+    
+    if st.session_state.get('eliminar_campo') is not None:
+        st.session_state['campos_personalizados'].pop(st.session_state['eliminar_campo'])
+        st.session_state['eliminar_campo'] = None
+        st.rerun()
 
     with st.form(key=form_key):
         # Sección: Datos personales
@@ -130,9 +145,8 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
 
         # Sección: Campos personalizados
         with st.expander("➕ Campos personalizados", expanded=False):
-            agregar_campo = st.form_submit_button("➕ Agregar campo personalizado")
-            if agregar_campo:
-                st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
+            if st.form_submit_button("➕ Agregar campo personalizado"):
+                st.session_state['agregar_campo'] = True
                 st.rerun()
             
             campos_personalizados = []
@@ -146,7 +160,7 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                                                  key=f"valor_campo_{form_key}_{i}")
                 with col3:
                     if st.form_submit_button("🗑️", key=f"del_campo_{form_key}_{i}"):
-                        st.session_state['campos_personalizados'].pop(i)
+                        st.session_state['eliminar_campo'] = i
                         st.rerun()
                 campos_personalizados.append(campo)
 
