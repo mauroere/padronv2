@@ -4,7 +4,12 @@ import pandas as pd
 from sqlalchemy import String, Boolean, Integer
 from sqlalchemy.orm import joinedload
 
-def crear_empleado(dni, nombre, apellido, fecha_ingreso, estado, skill, es_lider, usuario_id):
+def crear_empleado(
+    dni, nombre, apellido, fecha_ingreso, estado, skill, es_lider, usuario_id,
+    email=None, telefono=None, direccion=None, area=None, proyecto=None,
+    usuario_nt=None, usuario_hada=None, usuario_remedy=None, usuario_t3=None,
+    campos_personalizados=None
+):
     """Crea un nuevo empleado y registra el cambio en el log"""
     session = get_session()
     try:
@@ -15,7 +20,17 @@ def crear_empleado(dni, nombre, apellido, fecha_ingreso, estado, skill, es_lider
             fecha_ingreso=fecha_ingreso,
             estado=estado,
             skill=skill,
-            es_lider=es_lider
+            es_lider=es_lider,
+            email=email,
+            telefono=telefono,
+            direccion=direccion,
+            area=area,
+            proyecto=proyecto,
+            usuario_nt=usuario_nt,
+            usuario_hada=usuario_hada,
+            usuario_remedy=usuario_remedy,
+            usuario_t3=usuario_t3,
+            campos_personalizados=campos_personalizados
         )
         session.add(empleado)
         
