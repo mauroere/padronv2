@@ -20,23 +20,26 @@ def mostrar_pagina_dashboard():
     if hasattr(st.session_state, 'rol') and st.session_state.rol == 'admin':
         st.warning("Botón solo para administradores. Ejecuta la migración de nuevos campos en la tabla empleados.")
         if st.button("Ejecutar migración de nuevos campos empleados 🛠️"):
-            sql = '''
-            ALTER TABLE empleados
-            ADD COLUMN IF NOT EXISTS email VARCHAR,
-            ADD COLUMN IF NOT EXISTS telefono VARCHAR,
-            ADD COLUMN IF NOT EXISTS direccion VARCHAR,
-            ADD COLUMN IF NOT EXISTS area VARCHAR,
-            ADD COLUMN IF NOT EXISTS proyecto VARCHAR,
-            ADD COLUMN IF NOT EXISTS usuario_nt VARCHAR,
-            ADD COLUMN IF NOT EXISTS usuario_hada VARCHAR,
-            ADD COLUMN IF NOT EXISTS usuario_remedy VARCHAR,
-            ADD COLUMN IF NOT EXISTS usuario_t3 VARCHAR,
-            ADD COLUMN IF NOT EXISTS campos_personalizados JSONB;
-            '''
+            alter_statements = [
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS email VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS telefono VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS direccion VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS area VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS proyecto VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_nt VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_hada VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_remedy VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_t3 VARCHAR;",
+                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS campos_personalizados JSONB;"
+            ]
             try:
                 engine = get_engine()
                 with engine.connect() as conn:
-                    conn.execute(text(sql))
+                    for stmt in alter_statements:
+                        try:
+                            conn.execute(text(stmt))
+                        except Exception as e:
+                            st.info(f"Aviso: {str(e)}")
                 st.success("Migración ejecutada correctamente. Ya puedes usar los nuevos campos.")
             except Exception as e:
                 st.error(f"Error al ejecutar la migración: {str(e)}")
