@@ -41,9 +41,10 @@ def mostrar_pagina_dashboard():
                     if result.fetchone():
                         try:
                             conn.execute(text("ALTER TABLE empleados RENAME COLUMN mail TO email;"))
+                            conn.commit()  # Forzar commit tras el rename
                             st.info("Columna 'mail' renombrada a 'email'.")
                         except Exception as e:
-                            st.info(f"Aviso al renombrar: {str(e)}")
+                            st.error(f"Error al renombrar: {str(e)}")
                     # Agregar columnas faltantes
                     for stmt in alter_statements:
                         try:
