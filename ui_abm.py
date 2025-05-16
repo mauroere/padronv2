@@ -130,8 +130,11 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
 
         # Sección: Campos personalizados
         with st.expander("➕ Campos personalizados", expanded=False):
-            if st.button("➕ Agregar campo personalizado"):
+            agregar_campo = st.form_submit_button("➕ Agregar campo personalizado")
+            if agregar_campo:
                 st.session_state['campos_personalizados'].append({"nombre": "", "valor": ""})
+                st.rerun()
+            
             campos_personalizados = []
             for i, campo in enumerate(st.session_state['campos_personalizados']):
                 col1, col2, col3 = st.columns([2, 2, 1])
@@ -142,7 +145,7 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                     campo["valor"] = st.text_input(f"Valor campo {i+1}", value=campo["valor"],
                                                  key=f"valor_campo_{form_key}_{i}")
                 with col3:
-                    if st.button("🗑️", key=f"del_campo_{form_key}_{i}"):
+                    if st.form_submit_button("🗑️", key=f"del_campo_{form_key}_{i}"):
                         st.session_state['campos_personalizados'].pop(i)
                         st.rerun()
                 campos_personalizados.append(campo)
@@ -187,7 +190,8 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         with col1:
             submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
         with col2:
-            if st.form_submit_button("🔄 Limpiar formulario"):
+            limpiar = st.form_submit_button("🔄 Limpiar formulario")
+            if limpiar:
                 st.session_state['reset_form'] = True
                 st.rerun()
         
