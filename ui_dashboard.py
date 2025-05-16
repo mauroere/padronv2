@@ -21,15 +21,15 @@ def mostrar_pagina_dashboard():
         st.warning("Botón solo para administradores. Ejecuta la migración de nuevos campos en la tabla empleados.")
         if st.button("Ejecutar migración de nuevos campos empleados 🛠️"):
             alter_statements = [
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS telefono VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS direccion VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS area VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS proyecto VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_nt VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_hada VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_remedy VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_t3 VARCHAR;",
-                "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS campos_personalizados JSONB;"
+                ("telefono", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS telefono VARCHAR;"),
+                ("direccion", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS direccion VARCHAR;"),
+                ("area", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS area VARCHAR;"),
+                ("proyecto", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS proyecto VARCHAR;"),
+                ("usuario_nt", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_nt VARCHAR;"),
+                ("usuario_hada", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_hada VARCHAR;"),
+                ("usuario_remedy", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_remedy VARCHAR;"),
+                ("usuario_t3", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS usuario_t3 VARCHAR;"),
+                ("campos_personalizados", "ALTER TABLE empleados ADD COLUMN IF NOT EXISTS campos_personalizados JSONB;")
             ]
             try:
                 engine = get_engine()
@@ -41,17 +41,18 @@ def mostrar_pagina_dashboard():
                     if result.fetchone():
                         try:
                             conn.execute(text("ALTER TABLE empleados RENAME COLUMN mail TO email;"))
-                            conn.commit()  # Forzar commit tras el rename
+                            conn.commit()
                             st.info("Columna 'mail' renombrada a 'email'.")
                         except Exception as e:
                             st.error(f"Error al renombrar: {str(e)}")
-                    # Agregar columnas faltantes
-                    for stmt in alter_statements:
+                    # Agregar columnas faltantes una por una y mostrar resultado
+                    for colname, stmt in alter_statements:
                         try:
                             conn.execute(text(stmt))
+                            st.success(f"Columna '{colname}' agregada o ya existente.")
                         except Exception as e:
-                            st.info(f"Aviso: {str(e)}")
-                st.success("Migración ejecutada correctamente. Ya puedes usar los nuevos campos.")
+                            st.error(f"Error al agregar columna '{colname}': {str(e)}")
+                st.info("Migración finalizada. Verifica la tabla con el botón de inspección.")
             except Exception as e:
                 st.error(f"Error al ejecutar la migración: {str(e)}")
         # Botón para inspeccionar columnas actuales
