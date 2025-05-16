@@ -82,17 +82,55 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
     if form_key is None:
         form_key = f"form_empleado_nuevo_{st.session_state['form_key']}" if not empleado else f"form_empleado_edit_{dni}_{st.session_state['form_key']}"
 
+    # Agregar estilos para resaltar campos con error
+    st.markdown('''
+    <style>
+    .stTextInput input.error-field {
+        border: 2px solid #e53935 !important;
+        background-color: #fff6f6;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+
     with st.form(key=form_key):
+        # Validaciones en tiempo real
+        errores = {}
         # Sección: Datos personales
         with st.expander("👤 Datos personales", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
-                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), help="DNI del empleado (7 u 8 dígitos)", key=f"dni_{form_key}")
+                dni_class = "error-field" if not dni or not dni.isdigit() or not (7 <= len(dni) <= 8) else ""
+                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), help="DNI del empleado (7 u 8 dígitos)", key=f"dni_{form_key}",
+                                   label_visibility="visible")
+                st.markdown(f'<style>div[data-testid="stTextInput"][data-baseweb="input"] input#{f"dni_{form_key}"} {{border: 2px solid #e53935 !important;}}</style>' if dni_class else '', unsafe_allow_html=True)
+                if not dni or not dni.isdigit() or not (7 <= len(dni) <= 8):
+                    errores['dni'] = "DNI inválido. Debe tener 7 u 8 dígitos numéricos."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['dni'] + '</span>', unsafe_allow_html=True)
+                nombre_class = "error-field" if not nombre.strip() else ""
                 nombre = st.text_input("👤 Nombre*", value=nombre, help="Nombre del empleado", key=f"nombre_{form_key}")
+                st.markdown(f'<style>div[data-testid="stTextInput"][data-baseweb="input"] input#{f"nombre_{form_key}"} {{border: 2px solid #e53935 !important;}}</style>' if nombre_class else '', unsafe_allow_html=True)
+                if not nombre.strip():
+                    errores['nombre'] = "El nombre es obligatorio."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['nombre'] + '</span>', unsafe_allow_html=True)
+                apellido_class = "error-field" if not apellido.strip() else ""
                 apellido = st.text_input("👥 Apellido*", value=apellido, help="Apellido del empleado", key=f"apellido_{form_key}")
+                st.markdown(f'<style>div[data-testid="stTextInput"][data-baseweb="input"] input#{f"apellido_{form_key}"} {{border: 2px solid #e53935 !important;}}</style>' if apellido_class else '', unsafe_allow_html=True)
+                if not apellido.strip():
+                    errores['apellido'] = "El apellido es obligatorio."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['apellido'] + '</span>', unsafe_allow_html=True)
+                email_class = "error-field" if email and '@' not in email else ""
                 email = st.text_input("✉️ Email", value=email, help="Correo electrónico del empleado", key=f"email_{form_key}")
+                st.markdown(f'<style>div[data-testid="stTextInput"][data-baseweb="input"] input#{f"email_{form_key}"} {{border: 2px solid #e53935 !important;}}</style>' if email_class else '', unsafe_allow_html=True)
+                if email and '@' not in email:
+                    errores['email'] = "El email debe ser válido (contener @)."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['email'] + '</span>', unsafe_allow_html=True)
             with col2:
+                telefono_class = "error-field" if telefono and not telefono.replace('+', '').replace('-', '').replace(' ', '').isdigit() else ""
                 telefono = st.text_input("📞 Teléfono", value=telefono, help="Número de teléfono", key=f"telefono_{form_key}")
+                st.markdown(f'<style>div[data-testid="stTextInput"][data-baseweb="input"] input#{f"telefono_{form_key}"} {{border: 2px solid #e53935 !important;}}</style>' if telefono_class else '', unsafe_allow_html=True)
+                if telefono and not telefono.replace('+', '').replace('-', '').replace(' ', '').isdigit():
+                    errores['telefono'] = "El teléfono debe contener solo números, +, - o espacios."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['telefono'] + '</span>', unsafe_allow_html=True)
                 direccion = st.text_input("🏠 Dirección", value=direccion, help="Dirección completa", key=f"direccion_{form_key}")
 
         # Sección: Datos laborales
@@ -100,6 +138,9 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
             col3, col4 = st.columns(2)
             with col3:
                 fecha_ingreso = st.date_input("📅 Fecha de ingreso*", value=fecha_ingreso, help="Fecha de ingreso del empleado", key=f"fecha_ingreso_{form_key}")
+                if not isinstance(fecha_ingreso, (datetime.date, datetime.datetime)):
+                    errores['fecha_ingreso'] = "Fecha inválida."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['fecha_ingreso'] + '</span>', unsafe_allow_html=True)
                 estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], index=0 if estado == "activo" else 1, help="Estado actual del empleado", key=f"estado_{form_key}")
                 # Skill con opción Otro
                 skill_options = skills_unicos + ["Otro..."] if skills_unicos else ["Otro..."]
@@ -110,6 +151,9 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                 else:
                     skill = skill_select
                     st.session_state[f'nuevo_skill_{form_key}'] = ''
+                if not skill.strip():
+                    errores['skill'] = "El skill es obligatorio."
+                    st.markdown('<span style="color:red;font-size:12px;">' + errores['skill'] + '</span>', unsafe_allow_html=True)
             with col4:
                 # Área con opción Otro
                 area_options = areas_unicas + ["Otro..."] if areas_unicas else ["Otro..."]
@@ -156,41 +200,6 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
                         st.rerun()
                 campos_personalizados.append(campo)
 
-        # Validaciones
-        errores = []
-        if not dni or not dni.isdigit() or not (7 <= len(dni) <= 8):
-            errores.append("DNI inválido. Debe tener 7 u 8 dígitos numéricos.")
-        if not nombre.strip():
-            errores.append("El nombre es obligatorio.")
-        if not apellido.strip():
-            errores.append("El apellido es obligatorio.")
-        if not skill.strip():
-            errores.append("El skill es obligatorio.")
-        if not isinstance(fecha_ingreso, (datetime.date, datetime.datetime)):
-            errores.append("Fecha inválida.")
-        if email and not '@' in email:
-            errores.append("El email debe ser válido (contener @).")
-        if telefono and not telefono.replace('+', '').replace('-', '').replace(' ', '').isdigit():
-            errores.append("El teléfono debe contener solo números, +, - o espacios.")
-
-        # Mostrar errores con estilo
-        if errores:
-            st.markdown("""
-            <style>
-            .error-box {
-                background-color: #ffebee;
-                border: 1px solid #ffcdd2;
-                border-radius: 4px;
-                padding: 10px;
-                margin: 10px 0;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            st.markdown('<div class="error-box">', unsafe_allow_html=True)
-            for err in errores:
-                st.markdown(f"❌ {err}")
-            st.markdown('</div>', unsafe_allow_html=True)
-        
         # Botones de acción
         col1, col2 = st.columns([1, 4])
         with col1:
