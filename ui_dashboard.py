@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 from crud import listar_empleados, obtener_empleado
 from utils import formatear_fecha
+from sqlalchemy import text
+from db import get_engine
 
 def mostrar_pagina_dashboard():
     """Muestra la página del dashboard"""
@@ -13,6 +15,31 @@ def mostrar_pagina_dashboard():
         st.image("logo.png", width=80)
     with col_title:
         st.title("Dashboard")
+    
+    # --- Botón de migración solo para admin ---
+    if hasattr(st.session_state, 'rol') and st.session_state.rol == 'admin':
+        st.warning("Botón solo para administradores. Ejecuta la migración de nuevos campos en la tabla empleados.")
+        if st.button("Ejecutar migración de nuevos campos empleados 🛠️"):
+            sql = '''
+            ALTER TABLE empleados
+            ADD COLUMN IF NOT EXISTS email VARCHAR,
+            ADD COLUMN IF NOT EXISTS telefono VARCHAR,
+            ADD COLUMN IF NOT EXISTS direccion VARCHAR,
+            ADD COLUMN IF NOT EXISTS area VARCHAR,
+            ADD COLUMN IF NOT EXISTS proyecto VARCHAR,
+            ADD COLUMN IF NOT EXISTS usuario_nt VARCHAR,
+            ADD COLUMN IF NOT EXISTS usuario_hada VARCHAR,
+            ADD COLUMN IF NOT EXISTS usuario_remedy VARCHAR,
+            ADD COLUMN IF NOT EXISTS usuario_t3 VARCHAR,
+            ADD COLUMN IF NOT EXISTS campos_personalizados JSONB;
+            '''
+            try:
+                engine = get_engine()
+                with engine.connect() as conn:
+                    conn.execute(text(sql))
+                st.success("Migración ejecutada correctamente. Ya puedes usar los nuevos campos.")
+            except Exception as e:
+                st.error(f"Error al ejecutar la migración: {str(e)}")
     
     # Obtener datos
     empleados = listar_empleados()
