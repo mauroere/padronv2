@@ -87,53 +87,49 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         with st.expander("👤 Datos personales", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
-                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), 
-                                  help="DNI del empleado (7 u 8 dígitos)")
-                nombre = st.text_input("👤 Nombre*", value=nombre,
-                                     help="Nombre del empleado")
-                apellido = st.text_input("👥 Apellido*", value=apellido,
-                                       help="Apellido del empleado")
-                email = st.text_input("✉️ Email", value=email,
-                                    help="Correo electrónico del empleado")
+                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), help="DNI del empleado (7 u 8 dígitos)")
+                nombre = st.text_input("👤 Nombre*", value=nombre, help="Nombre del empleado")
+                apellido = st.text_input("👥 Apellido*", value=apellido, help="Apellido del empleado")
+                email = st.text_input("✉️ Email", value=email, help="Correo electrónico del empleado")
             with col2:
-                telefono = st.text_input("📞 Teléfono", value=telefono,
-                                       help="Número de teléfono")
-                direccion = st.text_input("🏠 Dirección", value=direccion,
-                                        help="Dirección completa")
+                telefono = st.text_input("📞 Teléfono", value=telefono, help="Número de teléfono")
+                direccion = st.text_input("🏠 Dirección", value=direccion, help="Dirección completa")
 
         # Sección: Datos laborales
         with st.expander("💼 Datos laborales", expanded=True):
             col3, col4 = st.columns(2)
             with col3:
-                fecha_ingreso = st.date_input("📅 Fecha de ingreso*", value=fecha_ingreso,
-                                            help="Fecha de ingreso del empleado")
-                estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], 
-                                    index=0 if estado == "activo" else 1,
-                                    help="Estado actual del empleado")
+                fecha_ingreso = st.date_input("📅 Fecha de ingreso*", value=fecha_ingreso, help="Fecha de ingreso del empleado")
+                estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], index=0 if estado == "activo" else 1, help="Estado actual del empleado")
                 # Skill con opción Otro
                 skill_options = skills_unicos + ["Otro..."] if skills_unicos else ["Otro..."]
-                skill_select = st.selectbox("💡 Skill*", options=skill_options, index=skill_options.index(skill) if skill in skill_options else len(skill_options)-1, help="Habilidad o especialidad del empleado")
+                skill_select = st.selectbox("💡 Skill*", options=skill_options, index=skill_options.index(skill) if skill in skill_options else len(skill_options)-1, help="Habilidad o especialidad del empleado", key="skill_select")
                 if skill_select == "Otro...":
-                    skill = st.text_input("💡 Nuevo Skill", value=skill if skill not in skills_unicos else "", help="Agregar un nuevo skill")
+                    nuevo_skill = st.text_input("💡 Escribe el nuevo skill", value=st.session_state.get('nuevo_skill', ''), key="nuevo_skill")
+                    skill = nuevo_skill
                 else:
                     skill = skill_select
+                    st.session_state['nuevo_skill'] = ''
             with col4:
                 # Área con opción Otro
                 area_options = areas_unicas + ["Otro..."] if areas_unicas else ["Otro..."]
-                area_select = st.selectbox("🏢 Área", options=area_options, index=area_options.index(area) if area in area_options else len(area_options)-1, help="Área o departamento")
+                area_select = st.selectbox("🏢 Área", options=area_options, index=area_options.index(area) if area in area_options else len(area_options)-1, help="Área o departamento", key="area_select")
                 if area_select == "Otro...":
-                    area = st.text_input("🏢 Nueva Área", value=area if area not in areas_unicas else "", help="Agregar una nueva área")
+                    nueva_area = st.text_input("🏢 Escribe la nueva área", value=st.session_state.get('nueva_area', ''), key="nueva_area")
+                    area = nueva_area
                 else:
                     area = area_select
+                    st.session_state['nueva_area'] = ''
                 # Proyecto con opción Otro
                 proyecto_options = proyectos_unicos + ["Otro..."] if proyectos_unicos else ["Otro..."]
-                proyecto_select = st.selectbox("📁 Proyecto", options=proyecto_options, index=proyecto_options.index(proyecto) if proyecto in proyecto_options else len(proyecto_options)-1, help="Proyecto asignado")
+                proyecto_select = st.selectbox("📁 Proyecto", options=proyecto_options, index=proyecto_options.index(proyecto) if proyecto in proyecto_options else len(proyecto_options)-1, help="Proyecto asignado", key="proyecto_select")
                 if proyecto_select == "Otro...":
-                    proyecto = st.text_input("📁 Nuevo Proyecto", value=proyecto if proyecto not in proyectos_unicos else "", help="Agregar un nuevo proyecto")
+                    nuevo_proyecto = st.text_input("📁 Escribe el nuevo proyecto", value=st.session_state.get('nuevo_proyecto', ''), key="nuevo_proyecto")
+                    proyecto = nuevo_proyecto
                 else:
                     proyecto = proyecto_select
-                es_lider = st.checkbox("⭐ ¿Es líder?", value=es_lider,
-                                     help="Indica si el empleado es líder de equipo")
+                    st.session_state['nuevo_proyecto'] = ''
+                es_lider = st.checkbox("⭐ ¿Es líder?", value=es_lider, help="Indica si el empleado es líder de equipo")
 
         # Sección: Acceso/Sistemas
         with st.expander("🔑 Acceso / Sistemas", expanded=False):
