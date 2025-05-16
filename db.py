@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey, text, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -35,6 +35,17 @@ class Empleado(Base):
     fecha_creacion = Column(DateTime, default=datetime.now)
     fecha_actualizacion = Column(DateTime, onupdate=datetime.now)
     activo = Column(Boolean, default=True)
+    # Campos avanzados
+    email = Column(String)
+    telefono = Column(String)
+    direccion = Column(String)
+    area = Column(String)
+    proyecto = Column(String)
+    usuario_nt = Column(String)
+    usuario_hada = Column(String)
+    usuario_remedy = Column(String)
+    usuario_t3 = Column(String)
+    campos_personalizados = Column(JSON)
 
 class LogCambio(Base):
     __tablename__ = 'log_cambios'
