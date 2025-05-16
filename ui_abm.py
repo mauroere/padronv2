@@ -87,63 +87,59 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         with st.expander("👤 Datos personales", expanded=True):
             col1, col2 = st.columns(2)
             with col1:
-                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), help="DNI del empleado (7 u 8 dígitos)")
-                nombre = st.text_input("👤 Nombre*", value=nombre, help="Nombre del empleado")
-                apellido = st.text_input("👥 Apellido*", value=apellido, help="Apellido del empleado")
-                email = st.text_input("✉️ Email", value=email, help="Correo electrónico del empleado")
+                dni = st.text_input("🆔 DNI*", value=dni, disabled=bool(empleado), help="DNI del empleado (7 u 8 dígitos)", key=f"dni_{form_key}")
+                nombre = st.text_input("👤 Nombre*", value=nombre, help="Nombre del empleado", key=f"nombre_{form_key}")
+                apellido = st.text_input("👥 Apellido*", value=apellido, help="Apellido del empleado", key=f"apellido_{form_key}")
+                email = st.text_input("✉️ Email", value=email, help="Correo electrónico del empleado", key=f"email_{form_key}")
             with col2:
-                telefono = st.text_input("📞 Teléfono", value=telefono, help="Número de teléfono")
-                direccion = st.text_input("🏠 Dirección", value=direccion, help="Dirección completa")
+                telefono = st.text_input("📞 Teléfono", value=telefono, help="Número de teléfono", key=f"telefono_{form_key}")
+                direccion = st.text_input("🏠 Dirección", value=direccion, help="Dirección completa", key=f"direccion_{form_key}")
 
         # Sección: Datos laborales
         with st.expander("💼 Datos laborales", expanded=True):
             col3, col4 = st.columns(2)
             with col3:
-                fecha_ingreso = st.date_input("📅 Fecha de ingreso*", value=fecha_ingreso, help="Fecha de ingreso del empleado")
-                estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], index=0 if estado == "activo" else 1, help="Estado actual del empleado")
+                fecha_ingreso = st.date_input("📅 Fecha de ingreso*", value=fecha_ingreso, help="Fecha de ingreso del empleado", key=f"fecha_ingreso_{form_key}")
+                estado = st.selectbox("🔄 Estado*", ["activo", "inactivo"], index=0 if estado == "activo" else 1, help="Estado actual del empleado", key=f"estado_{form_key}")
                 # Skill con opción Otro
                 skill_options = skills_unicos + ["Otro..."] if skills_unicos else ["Otro..."]
-                skill_select = st.selectbox("💡 Skill*", options=skill_options, index=skill_options.index(skill) if skill in skill_options else len(skill_options)-1, help="Habilidad o especialidad del empleado", key="skill_select")
+                skill_select = st.selectbox("💡 Skill*", options=skill_options, index=skill_options.index(skill) if skill in skill_options else len(skill_options)-1, help="Habilidad o especialidad del empleado", key=f"skill_select_{form_key}")
                 if skill_select == "Otro...":
-                    nuevo_skill = st.text_input("💡 Escribe el nuevo skill", value=st.session_state.get('nuevo_skill', ''), key="nuevo_skill")
+                    nuevo_skill = st.text_input("💡 Escribe el nuevo skill", value=st.session_state.get(f'nuevo_skill_{form_key}', ''), key=f"nuevo_skill_{form_key}")
                     skill = nuevo_skill
                 else:
                     skill = skill_select
-                    st.session_state['nuevo_skill'] = ''
+                    st.session_state[f'nuevo_skill_{form_key}'] = ''
             with col4:
                 # Área con opción Otro
                 area_options = areas_unicas + ["Otro..."] if areas_unicas else ["Otro..."]
-                area_select = st.selectbox("🏢 Área", options=area_options, index=area_options.index(area) if area in area_options else len(area_options)-1, help="Área o departamento", key="area_select")
+                area_select = st.selectbox("🏢 Área", options=area_options, index=area_options.index(area) if area in area_options else len(area_options)-1, help="Área o departamento", key=f"area_select_{form_key}")
                 if area_select == "Otro...":
-                    nueva_area = st.text_input("🏢 Escribe la nueva área", value=st.session_state.get('nueva_area', ''), key="nueva_area")
+                    nueva_area = st.text_input("🏢 Escribe la nueva área", value=st.session_state.get(f'nueva_area_{form_key}', ''), key=f"nueva_area_{form_key}")
                     area = nueva_area
                 else:
                     area = area_select
-                    st.session_state['nueva_area'] = ''
+                    st.session_state[f'nueva_area_{form_key}'] = ''
                 # Proyecto con opción Otro
                 proyecto_options = proyectos_unicos + ["Otro..."] if proyectos_unicos else ["Otro..."]
-                proyecto_select = st.selectbox("📁 Proyecto", options=proyecto_options, index=proyecto_options.index(proyecto) if proyecto in proyecto_options else len(proyecto_options)-1, help="Proyecto asignado", key="proyecto_select")
+                proyecto_select = st.selectbox("📁 Proyecto", options=proyecto_options, index=proyecto_options.index(proyecto) if proyecto in proyecto_options else len(proyecto_options)-1, help="Proyecto asignado", key=f"proyecto_select_{form_key}")
                 if proyecto_select == "Otro...":
-                    nuevo_proyecto = st.text_input("📁 Escribe el nuevo proyecto", value=st.session_state.get('nuevo_proyecto', ''), key="nuevo_proyecto")
+                    nuevo_proyecto = st.text_input("📁 Escribe el nuevo proyecto", value=st.session_state.get(f'nuevo_proyecto_{form_key}', ''), key=f"nuevo_proyecto_{form_key}")
                     proyecto = nuevo_proyecto
                 else:
                     proyecto = proyecto_select
-                    st.session_state['nuevo_proyecto'] = ''
-                es_lider = st.checkbox("⭐ ¿Es líder?", value=es_lider, help="Indica si el empleado es líder de equipo")
+                    st.session_state[f'nuevo_proyecto_{form_key}'] = ''
+                es_lider = st.checkbox("⭐ ¿Es líder?", value=es_lider, help="Indica si el empleado es líder de equipo", key=f"es_lider_{form_key}")
 
         # Sección: Acceso/Sistemas
         with st.expander("🔑 Acceso / Sistemas", expanded=False):
             col5, col6 = st.columns(2)
             with col5:
-                usuario_nt = st.text_input("🔑 Usuario NT", value=usuario_nt,
-                                         help="Usuario de Windows NT")
-                usuario_hada = st.text_input("🔑 Usuario HADA", value=usuario_hada,
-                                           help="Usuario del sistema HADA")
+                usuario_nt = st.text_input("🔑 Usuario NT", value=usuario_nt, help="Usuario de Windows NT", key=f"usuario_nt_{form_key}")
+                usuario_hada = st.text_input("🔑 Usuario HADA", value=usuario_hada, help="Usuario del sistema HADA", key=f"usuario_hada_{form_key}")
             with col6:
-                usuario_remedy = st.text_input("🔑 Usuario Remedy", value=usuario_remedy,
-                                             help="Usuario del sistema Remedy")
-                usuario_t3 = st.text_input("🔑 Usuario T3", value=usuario_t3,
-                                         help="Usuario del sistema T3")
+                usuario_remedy = st.text_input("🔑 Usuario Remedy", value=usuario_remedy, help="Usuario del sistema Remedy", key=f"usuario_remedy_{form_key}")
+                usuario_t3 = st.text_input("🔑 Usuario T3", value=usuario_t3, help="Usuario del sistema T3", key=f"usuario_t3_{form_key}")
 
         # Sección: Campos personalizados
         with st.expander("➕ Campos personalizados", expanded=False):
@@ -151,11 +147,9 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
             for i, campo in enumerate(st.session_state['campos_personalizados']):
                 col1, col2, col3 = st.columns([2, 2, 1])
                 with col1:
-                    campo["nombre"] = st.text_input(f"Nombre campo {i+1}", value=campo["nombre"],
-                                                  key=f"nombre_campo_{form_key}_{i}")
+                    campo["nombre"] = st.text_input(f"Nombre campo {i+1}", value=campo["nombre"], key=f"nombre_campo_{form_key}_{i}")
                 with col2:
-                    campo["valor"] = st.text_input(f"Valor campo {i+1}", value=campo["valor"],
-                                                 key=f"valor_campo_{form_key}_{i}")
+                    campo["valor"] = st.text_input(f"Valor campo {i+1}", value=campo["valor"], key=f"valor_campo_{form_key}_{i}")
                 with col3:
                     if st.form_submit_button("🗑️", key=f"del_campo_{form_key}_{i}"):
                         st.session_state['eliminar_campo'] = i
@@ -200,9 +194,9 @@ def mostrar_formulario_empleado(empleado=None, form_key=None):
         # Botones de acción
         col1, col2 = st.columns([1, 4])
         with col1:
-            submit = st.form_submit_button("💾 Guardar", disabled=bool(errores))
+            submit = st.form_submit_button("💾 Guardar", disabled=bool(errores), key=f"guardar_{form_key}")
         with col2:
-            limpiar = st.form_submit_button("🔄 Limpiar formulario")
+            limpiar = st.form_submit_button("🔄 Limpiar formulario", key=f"limpiar_{form_key}")
             if limpiar:
                 st.session_state['reset_form'] = True
                 st.rerun()
